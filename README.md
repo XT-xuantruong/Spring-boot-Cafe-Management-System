@@ -80,125 +80,135 @@ The features are categorized based on the roles of **Admin**, **Staff**, and **C
 
 The database uses **MySQL** with tables optimized for the **Admin**, **Staff**, and **Customer** roles. Below is the schema in tabular format:
 
-| **Table Name** | **Column Name**        | **Data Type** | **Constraints**                     | **Description**                              |
+### 1. `users`
+Stores information about registered users (admins, staff, customers).
 
-|----------------|------------------------|---------------|-------------------------------------|----------------------------------------------|
+| Column       | Type           | Constraints                                      | Description                        |
+|--------------|----------------|--------------------------------------------------|------------------------------------|
+| user_id      | BIGINT         | PRIMARY KEY, AUTO_INCREMENT                      | Unique identifier for users        |
+| username     | VARCHAR(50)    | NOT NULL, UNIQUE                                 | Username for login                 |
+| password     | VARCHAR(255)   | NOT NULL                                         | Encrypted password (BCrypt)        |
+| full_name    | VARCHAR(100)   | NOT NULL                                         | Full name                          |
+| email        | VARCHAR(100)   | UNIQUE                                           | Email address                      |
+| phone        | VARCHAR(20)    |                                                  | Phone number                       |
+| created_at   | TIMESTAMP      | DEFAULT CURRENT_TIMESTAMP                        | Record creation time               |
+| updated_at   | TIMESTAMP      | DEFAULT CURRENT_TIMESTAMP ON UPDATE              | Last update time                   |
 
-| **users**      | user_id               | BIGINT        | PRIMARY KEY, AUTO_INCREMENT         | Unique identifier for users                  |
+---
 
-|                | username              | VARCHAR(50)   | NOT NULL, UNIQUE                    | Username for login                           |
+### 2. `roles`
+Defines roles assigned to users (admin, staff, customer).
 
-|                | password              | VARCHAR(255)  | NOT NULL                            | Encrypted password (BCrypt)                  |
+| Column       | Type         | Constraints                  | Description                            |
+|--------------|--------------|------------------------------|----------------------------------------|
+| role_id      | BIGINT       | PRIMARY KEY, AUTO_INCREMENT  | Unique role ID                         |
+| role_name    | VARCHAR(50)  | NOT NULL, UNIQUE             | Role name (e.g., ROLE_ADMIN)           |
+| description  | TEXT         |                              | Role description                       |
 
-|                | full_name             | VARCHAR(100)  | NOT NULL                            | Full name of the user                        |
+---
 
-|                | email                 | VARCHAR(100)  | UNIQUE                              | User's email address                         |
+### 3. `user_roles`
+Mapping table for users and their roles (many-to-many).
 
-|                | phone                 | VARCHAR(20)   |                                     | User's phone number                          |
+| Column   | Type    | Constraints                       | Description              |
+|----------|---------|-----------------------------------|--------------------------|
+| user_id  | BIGINT  | PRIMARY KEY, FOREIGN KEY (users)  | References `users`       |
+| role_id  | BIGINT  | PRIMARY KEY, FOREIGN KEY (roles)  | References `roles`       |
 
-|                | created_at            | TIMESTAMP     | DEFAULT CURRENT_TIMESTAMP           | Record creation timestamp                    |
+---
 
-|                | updated_at            | TIMESTAMP     | DEFAULT CURRENT_TIMESTAMP ON UPDATE | Record update timestamp                      |
+### 4. `tables`
+Represents tables available in the coffee shop.
 
-| **roles**      | role_id               | BIGINT        | PRIMARY KEY, AUTO_INCREMENT         | Unique identifier for roles                  |
+| Column       | Type          | Constraints                              | Description                      |
+|--------------|---------------|------------------------------------------|----------------------------------|
+| table_id     | BIGINT        | PRIMARY KEY, AUTO_INCREMENT              | Unique table ID                  |
+| table_number | VARCHAR(10)   | NOT NULL, UNIQUE                         | Table code (e.g., T01, T02)      |
+| capacity     | INT           | NOT NULL                                 | Number of seats                  |
+| status       | ENUM          | DEFAULT 'AVAILABLE'                      | Status (AVAILABLE, RESERVED...)  |
+| created_at   | TIMESTAMP     | DEFAULT CURRENT_TIMESTAMP                | Creation time                    |
+| updated_at   | TIMESTAMP     | DEFAULT CURRENT_TIMESTAMP ON UPDATE      | Last update                      |
 
-|                | role_name             | VARCHAR(50)   | NOT NULL, UNIQUE                    | Role name (ROLE_ADMIN, ROLE_STAFF, ROLE_CUSTOMER) |
+---
 
-|                | description           | TEXT          |                                     | Role description                             |
+### 5. `reservations`
+Stores customer table reservations.
 
-| **user_roles** | user_id               | BIGINT        | PRIMARY KEY, FOREIGN KEY (users)    | References user_id                           |
+| Column           | Type      | Constraints                              | Description                             |
+|------------------|-----------|------------------------------------------|-----------------------------------------|
+| reservation_id   | BIGINT    | PRIMARY KEY, AUTO_INCREMENT              | Unique reservation ID                   |
+| user_id          | BIGINT    | FOREIGN KEY (users), NULLABLE            | Customer who reserved                    |
+| table_id         | BIGINT    | FOREIGN KEY (tables)                     | Reserved table                          |
+| reservation_time | DATETIME  | NOT NULL                                 | Time and date of reservation            |
+| status           | ENUM      | DEFAULT 'PENDING'                        | PENDING, CONFIRMED, CANCELLED           |
+| created_at       | TIMESTAMP | DEFAULT CURRENT_TIMESTAMP                | Record creation                         |
+| updated_at       | TIMESTAMP | DEFAULT CURRENT_TIMESTAMP ON UPDATE      | Record update                           |
 
-|                | role_id               | BIGINT        | PRIMARY KEY, FOREIGN KEY (roles)    | References role_id                           |
+---
 
-| **tables**     | table_id              | BIGINT        | PRIMARY KEY, AUTO_INCREMENT         | Unique identifier for tables                 |
+### 6. `menu_items`
+Contains menu items available for order.
 
-|                | table_number          | VARCHAR(10)   | NOT NULL, UNIQUE                    | Table identifier (e.g., T01, T02)            |
+| Column       | Type           | Constraints                  | Description                         |
+|--------------|----------------|------------------------------|-------------------------------------|
+| item_id      | BIGINT         | PRIMARY KEY, AUTO_INCREMENT  | Unique menu item ID                 |
+| item_name    | VARCHAR(100)   | NOT NULL                     | Name of the item                    |
+| description  | TEXT           |                              | Description                         |
+| price        | DECIMAL(10,2)  | NOT NULL                     | Item price                          |
+| category     | VARCHAR(50)    |                              | Coffee, Juice, Food...              |
+| image_url    | VARCHAR(255)   |                              | Image URL (e.g., Cloudinary)        |
+| is_available | BOOLEAN        | DEFAULT TRUE                 | Availability                        |
+| created_at   | TIMESTAMP      | DEFAULT CURRENT_TIMESTAMP    | Record creation                     |
+| updated_at   | TIMESTAMP      | DEFAULT CURRENT_TIMESTAMP ON UPDATE | Last update              |
 
-|                | capacity              | INT           | NOT NULL                            | Number of seats                              |
+---
 
-|                | status                | ENUM          | DEFAULT 'AVAILABLE'                 | Table status (AVAILABLE, RESERVED, OCCUPIED) |
+### 7. `orders`
+Tracks orders placed by staff or customers.
 
-|                | created_at            | TIMESTAMP     | DEFAULT CURRENT_TIMESTAMP           | Record creation timestamp                    |
+| Column         | Type          | Constraints                      | Description                                 |
+|----------------|---------------|----------------------------------|---------------------------------------------|
+| order_id       | BIGINT        | PRIMARY KEY, AUTO_INCREMENT      | Unique order ID                             |
+| user_id        | BIGINT        | FOREIGN KEY (users), NULLABLE    | Person who placed the order                 |
+| table_id       | BIGINT        | FOREIGN KEY (tables), NULLABLE   | Table associated with the order             |
+| order_status   | ENUM          | DEFAULT 'PENDING'                | PENDING, SERVED, COMPLETED...               |
+| payment_status | ENUM          | DEFAULT 'UNPAID'                 | UNPAID, PAID, PARTIALLY_PAID, CANCELLED     |
+| total_amount   | DECIMAL(10,2) | DEFAULT 0.00                     | Total amount of the order                   |
+| created_at     | TIMESTAMP     | DEFAULT CURRENT_TIMESTAMP        | Record creation                             |
+| updated_at     | TIMESTAMP     | DEFAULT CURRENT_TIMESTAMP ON UPDATE | Last update                             |
 
-|                | updated_at            | TIMESTAMP     | DEFAULT CURRENT_TIMESTAMP ON UPDATE | Record update timestamp                      |
+---
 
-| **reservations** | reservation_id      | BIGINT        | PRIMARY KEY, AUTO_INCREMENT         | Unique identifier for reservations           |
+### 8. `order_items`
+Items included in each order.
 
-|                | user_id               | BIGINT        | FOREIGN KEY (users), NULLABLE       | Customer who made the reservation            |
+| Column       | Type          | Constraints                    | Description                         |
+|--------------|---------------|--------------------------------|-------------------------------------|
+| order_item_id| BIGINT        | PRIMARY KEY, AUTO_INCREMENT    | Unique order item ID                |
+| order_id     | BIGINT        | FOREIGN KEY (orders)           | Related order                       |
+| item_id      | BIGINT        | FOREIGN KEY (menu_items)       | Ordered item                        |
+| quantity     | INT           | NOT NULL                       | Quantity of the item                |
+| unit_price   | DECIMAL(10,2) | NOT NULL                       | Price per unit                      |
+| subtotal     | DECIMAL(10,2) | GENERATED (quantity * unit_price) | Subtotal of the item            |
 
-|                | table_id              | BIGINT        | FOREIGN KEY (tables)                | Table being reserved                         |
+---
 
-|                | reservation_time      | DATETIME      | NOT NULL                            | Reservation date and time                    |
+### 9. `payments`
+Details about payments for orders.
 
-|                | status                | ENUM          | DEFAULT 'PENDING'                   | Status (PENDING, CONFIRMED, CANCELLED)       |
+| Column         | Type           | Constraints                     | Description                                |
+|----------------|----------------|----------------------------------|--------------------------------------------|
+| payment_id     | BIGINT         | PRIMARY KEY, AUTO_INCREMENT     | Unique payment ID                          |
+| order_id       | BIGINT         | FOREIGN KEY (orders)            | Related order                              |
+| amount         | DECIMAL(10,2)  | NOT NULL                        | Amount paid                                |
+| payment_method | ENUM           | NOT NULL                        | CASH, CARD, MOBILE, BANK_TRANSFER          |
+| payment_status | ENUM           | DEFAULT 'PENDING'               | PENDING, COMPLETED, FAILED, REFUNDED       |
+| payment_time   | DATETIME       |                                  | Time of payment                            |
+| transaction_id | VARCHAR(100)   | UNIQUE                          | ID from payment gateway                    |
+| created_at     | TIMESTAMP      | DEFAULT CURRENT_TIMESTAMP       | Record creation                            |
+| updated_at     | TIMESTAMP      | DEFAULT CURRENT_TIMESTAMP ON UPDATE | Last update                           |
 
-|                | created_at            | TIMESTAMP     | DEFAULT CURRENT_TIMESTAMP           | Record creation timestamp                    |
-
-|                | updated_at            | TIMESTAMP     | DEFAULT CURRENT_TIMESTAMP ON UPDATE | Record update timestamp                      |
-
-| **menu_items** | item_id               | BIGINT        | PRIMARY KEY, AUTO_INCREMENT         | Unique identifier for menu items             |
-
-|                | item_name             | VARCHAR(100)  | NOT NULL                            | Name of the menu item                        |
-
-|                | description           | TEXT          |                                     | Item description                             |
-
-|                | price                 | DECIMAL(10,2) | NOT NULL                            | Item price                                   |
-
-|                | category              | VARCHAR(50)   |                                     | Category (e.g., Coffee, Juice, Food)         |
-
-|                | image_url             | VARCHAR(255)  |                                     | URL of item image (Cloudinary)               |
-
-|                | is_available          | BOOLEAN       | DEFAULT TRUE                        | Availability status                          |
-
-|                | created_at            | TIMESTAMP     | DEFAULT CURRENT_TIMESTAMP           | Record creation timestamp                    |
-
-|                | updated_at            | TIMESTAMP     | DEFAULT CURRENT_TIMESTAMP ON UPDATE | Record update timestamp                      |
-
-| **orders**     | order_id              | BIGINT        | PRIMARY KEY, AUTO_INCREMENT         | Unique identifier for orders                 |
-
-|                | user_id               | BIGINT        | FOREIGN KEY (users), NULLABLE       | Staff or Customer who created the order      |
-
-|                | table_id              | BIGINT        | FOREIGN KEY (tables), NULLABLE      | Table associated with the order              |
-
-|                | order_status          | ENUM          | DEFAULT 'PENDING'                   | Status (PENDING, PREPARING, SERVED, COMPLETED, CANCELLED) |
-
-|                | payment_status        | ENUM          | DEFAULT 'UNPAID'                    | Payment status (UNPAID, PARTIALLY_PAID, PAID, CANCELLED) |
-
-|                | total_amount          | DECIMAL(10,2) | DEFAULT 0.00                        | Total order amount                           |
-
-|                | created_at            | TIMESTAMP     | DEFAULT CURRENT_TIMESTAMP           | Record creation timestamp                    |
-
-|                | updated_at            | TIMESTAMP     | DEFAULT CURRENT_TIMESTAMP ON UPDATE | Record update timestamp                      |
-
-| **order_items**| order_item_id         | BIGINT        | PRIMARY KEY, AUTO_INCREMENT         | Unique identifier for order items            |
-
-|                | order_id              | BIGINT        | FOREIGN KEY (orders)                | References order_id                          |
-
-|                | item_id               | BIGINT        | FOREIGN KEY (menu_items)            | References item_id                           |
-
-|                | quantity              | INT           | NOT NULL                            | Quantity of the item                         |
-
-|                | unit_price            | DECIMAL(10,2) | NOT NULL                            | Price per item                               |
-
-|                | subtotal              | DECIMAL(10,2) | GENERATED (quantity * unit_price)   | Calculated subtotal                          |
-
-| **payments**   | payment_id            | BIGINT        | PRIMARY KEY, AUTO_INCREMENT         | Unique identifier for payments               |
-
-|                | order_id              | BIGINT        | FOREIGN KEY (orders)                | References order_id                          |
-
-|                | amount                | DECIMAL(10,2) | NOT NULL                            | Payment amount                               |
-
-|                | payment_method        | ENUM          | NOT NULL                            | Method (CASH, CARD, MOBILE, BANK_TRANSFER)   |
-
-|                | payment_status        | ENUM          | DEFAULT 'PENDING'                   | Status (PENDING, COMPLETED, FAILED, REFUNDED) |
-
-|                | payment_time          | DATETIME      |                                     | Timestamp of payment                         |
-
-|                | transaction_id        | VARCHAR(100)  | UNIQUE                              | Transaction ID from payment gateway          |
-
-|                | created_at            | TIMESTAMP     | DEFAULT CURRENT_TIMESTAMP           | Record creation timestamp                    |
-
-|                | updated_at            | TIMESTAMP     | DEFAULT CURRENT_TIMESTAMP ON UPDATE | Record update timestamp                      |
+---
 
 **Relationships**:
 
@@ -230,115 +240,95 @@ The database uses **MySQL** with tables optimized for the **Admin**, **Staff**, 
 
 The **REST APIs** are designed to support **Admin**, **Staff**, and **Customer** roles, with clear role-based authorization using **JWT**. All APIs return JSON and are grouped by functionality.
 
-### **1. Authentication APIs**
+### 1. 🔐 Authentication API
+Handles user authentication and session management.
 
-| Method | Endpoint            | Role         | Description                              | Request Body                              | Response                         |
+| Method | Endpoint             | Description                  |
+|--------|----------------------|------------------------------|
+| POST   | `/api/auth/register` | Register a new user          |
+| POST   | `/api/auth/login`    | Authenticate user and get access token  |
+| POST   | `/api/auth/refresh`  | Refresh the access token     |
+| GET    | `/api/auth/me`       | Get authenticated user's information |
+| POST   | `/api/auth/logout`   | Log out the user             |
 
-|--------|---------------------|--------------|------------------------------------------|-------------------------------------------|----------------------------------|
+---
 
-| POST   | `/api/auth/login`   | None         | Log in, returns JWT token (Admin, Staff, Customer) | `{ "username": string, "password": string }` | `{ "token": string, "username": string, "roles": string[] }` |
+### 2. 👤 User API
+Manages user accounts and roles.
 
-| POST   | `/api/auth/register`| None         | Register a new Customer                 | `{ "username": string, "password": string, "fullName": string, "email": string, "phone": string }` | `{ "userId": number, ... }` |
+| Method | Endpoint           | Description                  |
+|--------|--------------------|------------------------------|
+| GET    | `/api/users`       | Retrieve all users           |
+| GET    | `/api/users/{id}`  | Get details of a specific user |
+| PUT    | `/api/users/{id}`  | Update user information      |
+| DELETE | `/api/users/{id}`  | Delete a user                |
 
-### **2. User Management APIs**
+---
 
-| Method | Endpoint               | Role                  | Description                              | Request Body                              | Response                         |
+### 3. 🍽️ Table API
+Handles table creation and management.
 
-|--------|------------------------|-----------------------|------------------------------------------|-------------------------------------------|----------------------------------|
+| Method | Endpoint             | Description                  |
+|--------|----------------------|------------------------------|
+| GET    | `/api/tables`        | Get all tables               |
+| GET    | `/api/tables/{id}`   | Get specific table details   |
+| POST   | `/api/tables`        | Create a new table           |
+| PUT    | `/api/tables/{id}`   | Update table information     |
+| DELETE | `/api/tables/{id}`   | Delete a table               |
 
-| GET    | `/api/users`           | ROLE_ADMIN            | Get list of all users                   | -                                         | `[{ "userId": number, "username": string, "roles": string[], ... }]` |
+---
 
-| GET    | `/api/users/{id}`      | ROLE_ADMIN, ROLE_STAFF, ROLE_CUSTOMER | Get user details by ID (Customers only view own info) | -                                         | `{ "userId": number, ... }`     |
+### 4. 📅 Reservation API
+Manages table reservations.
 
-| POST   | `/api/users`           | ROLE_ADMIN            | Create new user (Admin, Staff)          | `{ "username": string, "password": string, "fullName": string, "email": string, "phone": string, "roles": string[] }` | `{ "userId": number, ... }`     |
+| Method | Endpoint                 | Description                    |
+|--------|--------------------------|--------------------------------|
+| GET    | `/api/reservations`      | Get all reservations           |
+| POST   | `/api/reservations`      | Create a new reservation       |
+| PUT    | `/api/reservations/{id}` | Update reservation information |
+| DELETE | `/api/reservations/{id}` | Cancel/delete a reservation    |
 
-| PUT    | `/api/users/{id}`      | ROLE_ADMIN, ROLE_STAFF, ROLE_CUSTOMER | Update user info (Customers only update own info) | `{ "fullName": string, "email": string, "phone": string }` | `{ "userId": number, ... }`     |
+---
 
-| DELETE | `/api/users/{id}`      | ROLE_ADMIN            | Delete a user                           | -                                         | `{ "message": "User deleted" }` |
+### 5. 📋 Menu API
+Handles the restaurant's menu items.
 
-### **3. Table Management APIs**
+| Method | Endpoint            | Description                    |
+|--------|---------------------|--------------------------------|
+| GET    | `/api/menus`        | List all menu items            |
+| GET    | `/api/menus/{id}`   | Get details of a menu item     |
+| POST   | `/api/menus`        | Add a new menu item            |
+| PUT    | `/api/menus/{id}`   | Update a menu item             |
+| DELETE | `/api/menus/{id}`   | Delete a menu item             |
 
-| Method | Endpoint               | Role                  | Description                              | Request Body                              | Response                         |
+---
 
-|--------|------------------------|-----------------------|------------------------------------------|-------------------------------------------|----------------------------------|
+### 6. 🧾 Order API
+Manages customer orders.
 
-| GET    | `/api/tables`          | ROLE_ADMIN, ROLE_STAFF | Get list of tables and statuses        | -                                         | `[{ "tableId": number, "tableNumber": string, "status": string, ... }]` |
+| Method | Endpoint           | Description                   |
+|--------|--------------------|-------------------------------|
+| GET    | `/api/orders`      | List all orders               |
+| GET    | `/api/orders/{id}` | Get details of a specific order |
+| POST   | `/api/orders`      | Create a new order            |
+| PUT    | `/api/orders/{id}` | Update an order               |
+| DELETE | `/api/orders/{id}` | Cancel/delete an order        |
 
-| GET    | `/api/tables/{id}`     | ROLE_ADMIN, ROLE_STAFF | Get table details by ID                | -                                         | `{ "tableId": number, ... }`     |
+---
 
-| POST   | `/api/tables`          | ROLE_ADMIN            | Create a new table                      | `{ "tableNumber": string, "capacity": number }` | `{ "tableId": number, ... }`     |
+### 7. 💳 Payment API
+Handles order payments.
 
-| PUT    | `/api/tables/{id}`     | ROLE_ADMIN            | Update table details                    | `{ "tableNumber": string, "capacity": number, "status": string }` | `{ "tableId": number, ... }`     |
+| Method | Endpoint             | Description                      |
+|--------|----------------------|----------------------------------|
+| GET    | `/api/payments`      | List all payments                |
+| GET    | `/api/payments/{id}` | Get details of a specific payment |
+| POST   | `/api/payments`      | Create a new payment             |
+| PUT    | `/api/payments/{id}` | Update payment status/details    |
+| DELETE | `/api/payments/{id}` | Delete a payment record          |
 
-| DELETE | `/api/tables/{id}`     | ROLE_ADMIN            | Delete a table                          | -                                         | `{ "message": "Table deleted" }` |
+---
 
-### **4. Reservation Management APIs**
-
-| Method | Endpoint                   | Role                  | Description                              | Request Body                              | Response                         |
-
-|--------|----------------------------|-----------------------|------------------------------------------|-------------------------------------------|----------------------------------|
-
-| GET    | `/api/reservations`        | ROLE_ADMIN, ROLE_STAFF | Get list of reservations                | -                                         | `[{ "reservationId": number, ... }]` |
-
-| GET    | `/api/reservations/{id}`   | ROLE_ADMIN, ROLE_STAFF | Get reservation details by ID           | -                                         | `{ "reservationId": number, ... }` |
-
-| GET    | `/api/reservations/customer` | ROLE_CUSTOMER       | Get list of Customer's reservations     | -                                         | `[{ "reservationId": number, ... }]` |
-
-| POST   | `/api/reservations`        | ROLE_ADMIN, ROLE_STAFF, ROLE_CUSTOMER | Create a new reservation        | `{ "userId": number, "tableId": number, "reservationTime": string }` | `{ "reservationId": number, ... }` |
-
-| PUT    | `/api/reservations/{id}`   | ROLE_ADMIN, ROLE_STAFF | Update reservation status (e.g., CONFIRMED) | `{ "status": string }`                    | `{ "reservationId": number, ... }` |
-
-| DELETE | `/api/reservations/{id}`   | ROLE_ADMIN, ROLE_STAFF, ROLE_CUSTOMER | Cancel reservation (Customers only cancel own) | -                                         | `{ "message": "Reservation cancelled" }` |
-
-### **5. Menu Management APIs**
-
-| Method | Endpoint                   | Role                  | Description                              | Request Body                              | Response                         |
-
-|--------|----------------------------|-----------------------|------------------------------------------|-------------------------------------------|----------------------------------|
-
-| GET    | `/api/menu-items`          | All                   | Get list of menu items                  | -                                         | `[{ "itemId": number, "itemName": string, "imageUrl": string, ... }]` |
-
-| GET    | `/api/menu-items/{id}`     | All                   | Get menu item details by ID             | -                                         | `{ "itemId": number, ... }`     |
-
-| POST   | `/api/menu-items`          | ROLE_ADMIN            | Create a new menu item (with Cloudinary image) | `multipart/form-data: { "itemName": string, "price": number, "category": string, "image": file }` | `{ "itemId": number, ... }`     |
-
-| PUT    | `/api/menu-items/{id}`     | ROLE_ADMIN            | Update a menu item                      | `multipart/form-data: { "itemName": string, "price": number, "category": string, "image": file }` | `{ "itemId": number, ... }`     |
-
-| DELETE | `/api/menu-items/{id}`     | ROLE_ADMIN            | Delete a menu item                      | -                                         | `{ "message": "Item deleted" }` |
-
-### **6. Order Management APIs**
-
-| Method | Endpoint                   | Role                  | Description                              | Request Body                              | Response                         |
-
-|--------|----------------------------|-----------------------|------------------------------------------|-------------------------------------------|----------------------------------|
-
-| GET    | `/api/orders`              | ROLE_ADMIN, ROLE_STAFF | Get list of all orders                 | -                                         | `[{ "orderId": number, "tableId": number, ... }]` |
-
-| GET    | `/api/orders/{id}`         | ROLE_ADMIN, ROLE_STAFF | Get order details by ID                | -                                         | `{ "orderId": number, "items": [{...}], ... }` |
-
-| GET    | `/api/orders/customer`     | ROLE_CUSTOMER         | Get list of Customer's orders           | -                                         | `[{ "orderId": number, ... }]` |
-
-| POST   | `/api/orders`              | ROLE_ADMIN, ROLE_STAFF, ROLE_CUSTOMER | Create a new order             | `{ "userId": number, "tableId": number, "items": [{ "itemId": number, "quantity": number }], ... }` | `{ "orderId": number, ... }`     |
-
-| PUT    | `/api/orders/{id}`         | ROLE_ADMIN, ROLE_STAFF | Update order status                    | `{ "orderStatus": string }`               | `{ "orderId": number, ... }`     |
-
-| DELETE | `/api/orders/{id}`         | ROLE_ADMIN, ROLE_STAFF | Cancel an order                        | -                                         | `{ "message": "Order cancelled" }` |
-
-### **7. Payment Management APIs**
-
-| Method | Endpoint                   | Role                  | Description                              | Request Body                              | Response                         |
-
-|--------|----------------------------|-----------------------|------------------------------------------|-------------------------------------------|----------------------------------|
-
-| GET    | `/api/payments`            | ROLE_ADMIN, ROLE_STAFF | Get list of all payments               | -                                         | `[{ "paymentId": number, ... }]` |
-
-| GET    | `/api/payments/order/{orderId}` | ROLE_ADMIN, ROLE_STAFF, ROLE_CUSTOMER | Get payments for an order (Customers only view own) | -                                         | `[{ "paymentId": number, ... }]` |
-
-| GET    | `/api/payments/customer`   | ROLE_CUSTOMER         | Get list of Customer's payments         | -                                         | `[{ "paymentId": number, ... }]` |
-
-| POST   | `/api/payments`            | ROLE_ADMIN, ROLE_STAFF | Process a new payment                  | `{ "orderId": number, "amount": number, "paymentMethod": string, "transactionId": string }` | `{ "paymentId": number, ... }`     |
-
-| PUT    | `/api/payments/{id}`       | ROLE_ADMIN, ROLE_STAFF | Update payment status                  | `{ "paymentStatus": string }`             | `{ "paymentId": number, ... }`     |
 
 ---
 
