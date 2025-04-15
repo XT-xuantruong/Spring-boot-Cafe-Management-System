@@ -8,7 +8,6 @@ import com.truong.backend.entity.User;
 import com.truong.backend.repository.UserRepository;
 import com.truong.backend.service.CustomUserDetailsService;
 import com.truong.backend.service.RefreshTokenService;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
