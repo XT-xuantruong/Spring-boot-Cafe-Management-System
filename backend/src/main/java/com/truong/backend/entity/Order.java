@@ -21,7 +21,7 @@ public class Order {
 
     @ManyToOne
     @JoinColumn(name = "table_id")
-    private Table table;
+    private CafeTable cafeTable;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -49,10 +49,10 @@ public class Order {
     public Order() {
     }
 
-    public Order(Long orderId, User user, Table table, OrderStatus orderStatus, PaymentStatus paymentStatus, Double totalAmount, LocalDateTime createdAt, LocalDateTime updatedAt, List<OrderItem> orderItems, List<Payment> payments) {
+    public Order(Long orderId, User user, CafeTable table, OrderStatus orderStatus, PaymentStatus paymentStatus, Double totalAmount, LocalDateTime createdAt, LocalDateTime updatedAt, List<OrderItem> orderItems, List<Payment> payments) {
         this.orderId = orderId;
         this.user = user;
-        this.table = table;
+        this.cafeTable = table;
         this.orderStatus = orderStatus;
         this.paymentStatus = paymentStatus;
         this.totalAmount = totalAmount;
@@ -118,12 +118,12 @@ public class Order {
         this.orderStatus = orderStatus;
     }
 
-    public Table getTable() {
-        return table;
+    public CafeTable getTable() {
+        return cafeTable;
     }
 
-    public void setTable(Table table) {
-        this.table = table;
+    public void setTable(CafeTable cafetable) {
+        this.cafeTable = cafetable;
     }
 
     public User getUser() {

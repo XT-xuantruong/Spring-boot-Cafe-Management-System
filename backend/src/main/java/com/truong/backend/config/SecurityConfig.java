@@ -48,6 +48,42 @@ public class SecurityConfig {
                         .requestMatchers("/api/users/profile").authenticated()
                         .requestMatchers("/api/users").hasRole("ADMIN")
                         .requestMatchers("/api/users/**").authenticated()
+                        // Table endpoints
+                        .requestMatchers("/api/tables").hasAnyRole("ADMIN", "STAFF") // Admin và Staff xem danh sách bàn
+                        .requestMatchers("/api/tables/**").hasAnyRole("ADMIN", "STAFF") // Admin và Staff xem/cập nhật/xóa bàn
+                        .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/tables").hasRole("ADMIN") // Chỉ Admin tạo bàn
+                        .requestMatchers(org.springframework.http.HttpMethod.PUT, "/api/tables/**").hasRole("ADMIN") // Chỉ Admin cập nhật bàn
+                        .requestMatchers(org.springframework.http.HttpMethod.DELETE, "/api/tables/**").hasRole("ADMIN") // Chỉ Admin xóa bàn
+
+                        // Reservation endpoints
+                        .requestMatchers("/api/reservations").hasAnyRole("ADMIN", "STAFF") // Admin và Staff xem danh sách đặt bàn
+                        .requestMatchers("/api/reservations/**").hasAnyRole("ADMIN", "STAFF") // Admin và Staff xem chi tiết đặt bàn
+                        .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/reservations").hasAnyRole("ADMIN", "STAFF", "CUSTOMER") // Tất cả tạo đặt bàn
+                        .requestMatchers(org.springframework.http.HttpMethod.PUT, "/api/reservations/**").hasAnyRole("ADMIN", "STAFF") // Admin và Staff cập nhật trạng thái
+                        .requestMatchers(org.springframework.http.HttpMethod.DELETE, "/api/reservations/**").hasAnyRole("ADMIN", "STAFF", "CUSTOMER") // Tất cả hủy đặt bàn
+                        .requestMatchers("/api/reservations/customer").hasRole("CUSTOMER") // Customer xem danh sách đặt bàn của mình
+
+                        // Menu Item endpoints
+                        .requestMatchers("/api/menu-items").permitAll() // Tất cả xem danh sách món
+                        .requestMatchers("/api/menu-items/**").permitAll() // Tất cả xem chi tiết món
+                        .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/menu-items").hasRole("ADMIN") // Chỉ Admin tạo món
+                        .requestMatchers(org.springframework.http.HttpMethod.PUT, "/api/menu-items/**").hasRole("ADMIN") // Chỉ Admin cập nhật món
+                        .requestMatchers(org.springframework.http.HttpMethod.DELETE, "/api/menu-items/**").hasRole("ADMIN") // Chỉ Admin xóa món
+
+                        // Order endpoints
+                        .requestMatchers("/api/orders").hasAnyRole("ADMIN", "STAFF") // Admin và Staff xem danh sách đơn hàng
+                        .requestMatchers("/api/orders/**").hasAnyRole("ADMIN", "STAFF") // Admin và Staff xem chi tiết đơn hàng
+                        .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/orders").hasAnyRole("ADMIN", "STAFF", "CUSTOMER") // Tất cả tạo đơn hàng
+                        .requestMatchers(org.springframework.http.HttpMethod.PUT, "/api/orders/**").hasAnyRole("ADMIN", "STAFF") // Admin và Staff cập nhật trạng thái
+                        .requestMatchers(org.springframework.http.HttpMethod.DELETE, "/api/orders/**").hasAnyRole("ADMIN", "STAFF") // Admin và Staff hủy đơn hàng
+                        .requestMatchers("/api/orders/customer").hasRole("CUSTOMER") // Customer xem danh sách đơn hàng của mình
+
+                        // Payment endpoints
+                        .requestMatchers("/api/payments").hasAnyRole("ADMIN", "STAFF") // Admin và Staff xem danh sách thanh toán
+                        .requestMatchers("/api/payments/order/**").hasAnyRole("ADMIN", "STAFF", "CUSTOMER") // Tất cả xem thanh toán của đơn hàng
+                        .requestMatchers("/api/payments/customer").hasRole("CUSTOMER") // Customer xem danh sách thanh toán của mình
+                        .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/payments").hasAnyRole("ADMIN", "STAFF") // Admin và Staff xử lý thanh toán
+                        .requestMatchers(org.springframework.http.HttpMethod.PUT, "/api/payments/**").hasAnyRole("ADMIN", "STAFF") // Admin và Staff cập nhật trạng thái thanh toán
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
 
