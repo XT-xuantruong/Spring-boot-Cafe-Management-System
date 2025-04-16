@@ -13,7 +13,7 @@ import java.util.List;
 @Repository
 public interface OrderRepository extends JpaRepository<Order, Long> {
     // Lấy danh sách đơn hàng của một khách hàng
-    List<Order> findByUserUserId(Long userId);
+    List<Order> findByUserId(Long userId);
 
     // Lấy danh sách đơn hàng theo trạng thái
     List<Order> findByOrderStatus(OrderStatus orderStatus);

@@ -12,7 +12,7 @@ import java.util.List;
 @Repository
 public interface ReservationRepository extends JpaRepository<Reservation, Long> {
     // Lấy danh sách đặt bàn của một khách hàng
-    List<Reservation> findByUserUserId(Long userId);
+    List<Reservation> findByUserId(Long userId);
 
     // Lấy danh sách đặt bàn theo trạng thái
     List<Reservation> findByStatus(ReservationStatus status);

@@ -59,7 +59,7 @@ public class ReservationService {
 
     // Lấy danh sách đặt bàn của khách hàng (Customer)
     public List<Reservation> getReservationsByUser(Long userId) {
-        return reservationRepository.findByUserUserId(userId);
+        return reservationRepository.findByUserId(userId);
     }
 
     // Cập nhật trạng thái đặt bàn (Admin, Staff)

@@ -83,7 +83,7 @@ public class OrderService {
 
     // Lấy danh sách đơn hàng của khách hàng (Customer)
     public List<Order> getOrdersByUser(Long userId) {
-        return orderRepository.findByUserUserId(userId);
+        return orderRepository.findByUserId(userId);
     }
 
     // Cập nhật trạng thái đơn hàng (Admin, Staff)
