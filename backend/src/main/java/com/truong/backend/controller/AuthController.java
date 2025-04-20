@@ -16,8 +16,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
@@ -80,7 +78,7 @@ public class AuthController {
         user.setName(registerRequest.getName());
         user.setPhone(registerRequest.getPhone());
         user.setAddress(registerRequest.getAddress());
-        user.setRole(Role.USER);
+        user.setRole(Role.CUSTOMER);
         userRepository.save(user);
         return ResponseEntity.ok(new ApiResponse<>("success", "User registered successfully", null));
     }

@@ -1,7 +1,9 @@
 package com.truong.backend.controller;
 
+import com.truong.backend.dto.MenuItemRequest;
 import com.truong.backend.entity.MenuItem;
 import com.truong.backend.service.MenuItemService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -33,12 +35,8 @@ public class MenuItemController {
     // Tạo món mới (Admin)
     @PostMapping
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public ResponseEntity<MenuItem> createMenuItem(
-            @RequestParam String itemName,
-            @RequestParam Double price,
-            @RequestParam String category,
-            @RequestPart(value = "image", required = false) MultipartFile image) throws IOException {
-        return ResponseEntity.ok(menuItemService.createMenuItem(itemName, price, category, image));
+    public ResponseEntity<MenuItem> createMenuItem(@RequestBody @Valid MenuItemRequest menuItemRequest) {
+        return ResponseEntity.ok(menuItemService.createMenuItem(menuItemRequest));
     }
 
     // Cập nhật món (Admin)
@@ -46,11 +44,8 @@ public class MenuItemController {
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<MenuItem> updateMenuItem(
             @PathVariable Long id,
-            @RequestParam String itemName,
-            @RequestParam Double price,
-            @RequestParam String category,
-            @RequestPart(value = "image", required = false) MultipartFile image) throws IOException {
-        return ResponseEntity.ok(menuItemService.updateMenuItem(id, itemName, price, category, image));
+            @RequestBody MenuItemRequest menuItemRequest) {
+        return ResponseEntity.ok(menuItemService.updateMenuItem(id, menuItemRequest));
     }
 
     // Xóa món (Admin)

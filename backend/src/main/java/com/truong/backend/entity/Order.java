@@ -1,5 +1,6 @@
 package com.truong.backend.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -13,12 +14,13 @@ import java.util.List;
 public class Order {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long orderId;   
+    private Long orderId;
 
     @ManyToOne
     @JoinColumn(name = "user_id")
     private User user;
 
+    @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "table_id")
     private CafeTable cafeTable;
@@ -43,13 +45,13 @@ public class Order {
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderItem> orderItems = new ArrayList<>();
 
-    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Payment> payments = new ArrayList<>();
+    @OneToOne(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Payment payment;
 
     public Order() {
     }
 
-    public Order(Long orderId, User user, CafeTable table, OrderStatus orderStatus, PaymentStatus paymentStatus, Double totalAmount, LocalDateTime createdAt, LocalDateTime updatedAt, List<OrderItem> orderItems, List<Payment> payments) {
+    public Order(Long orderId, User user, CafeTable table, OrderStatus orderStatus, PaymentStatus paymentStatus, Double totalAmount, LocalDateTime createdAt, LocalDateTime updatedAt, List<OrderItem> orderItems, Payment payment) {
         this.orderId = orderId;
         this.user = user;
         this.cafeTable = table;
@@ -59,15 +61,15 @@ public class Order {
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
         this.orderItems = orderItems;
-        this.payments = payments;
+        this.payment = payment;
     }
 
-    public List<Payment> getPayments() {
-        return payments;
+    public Payment getPayment() {
+        return payment;
     }
 
-    public void setPayments(List<Payment> payments) {
-        this.payments = payments;
+    public void setPayment(Payment payment) {
+        this.payment = payment;
     }
 
     public List<OrderItem> getOrderItems() {

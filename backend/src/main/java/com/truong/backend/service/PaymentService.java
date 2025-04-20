@@ -1,16 +1,20 @@
 package com.truong.backend.service;
 
+import com.truong.backend.dto.PaymentRequest;
+import com.truong.backend.dto.UpdatePaymentRequest;
+import com.truong.backend.dto.PaymentResponse;
 import com.truong.backend.entity.Order;
 import com.truong.backend.entity.Payment;
-import com.truong.backend.entity.PaymentMethod;
 import com.truong.backend.entity.PaymentStatus;
 import com.truong.backend.repository.OrderRepository;
 import com.truong.backend.repository.PaymentRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class PaymentService {
@@ -21,73 +25,83 @@ public class PaymentService {
     @Autowired
     private OrderRepository orderRepository;
 
-    // Xử lý thanh toán mới (Admin, Staff)
-    public Payment processPayment(Long orderId, Double amount, PaymentMethod paymentMethod, String transactionId) {
-        Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new IllegalArgumentException("Order not found with ID: " + orderId));
+    private PaymentResponse toResponse(Payment payment) {
+        PaymentResponse response = new PaymentResponse();
+        response.setPaymentId(payment.getPaymentId());
+        response.setOrderId(payment.getOrder().getOrderId());
+        response.setAmount(payment.getAmount());
+        response.setPaymentMethod(payment.getPaymentMethod());
+        response.setPaymentStatus(payment.getPaymentStatus());
+        response.setPaymentTime(payment.getPaymentTime());
+        response.setTransactionId(payment.getTransactionId());
+        return response;
+    }
+
+    public PaymentResponse processPayment(PaymentRequest paymentRequest) {
+        Order order = orderRepository.findById(paymentRequest.getOrderId())
+                .orElseThrow(() -> new IllegalArgumentException("Order not found with ID: " + paymentRequest.getOrderId()));
+
+        // Kiểm tra xem Order đã có Payment chưa
+        if (order.getPayment() != null) {
+            throw new IllegalArgumentException("Order already has a Payment. Each Order can only have one Payment.");
+        }
+
+        if (paymentRepository.existsByTransactionId(paymentRequest.getTransactionId())) {
+            throw new IllegalArgumentException("Transaction ID '" + paymentRequest.getTransactionId() + "' already exists");
+        }
 
         Payment payment = new Payment();
         payment.setOrder(order);
-        payment.setAmount(amount);
-        payment.setPaymentMethod(paymentMethod);
+        payment.setAmount(paymentRequest.getAmount());
+        payment.setPaymentMethod(paymentRequest.getPaymentMethod());
         payment.setPaymentStatus(PaymentStatus.PAID);
         payment.setPaymentTime(LocalDateTime.now());
-        payment.setTransactionId(transactionId);
+        payment.setTransactionId(paymentRequest.getTransactionId());
 
-        Payment savedPayment = paymentRepository.save(payment);
-
-        // Cập nhật trạng thái thanh toán của đơn hàng
-        double totalPaid = order.getPayments().stream()
-                .filter(p -> p.getPaymentStatus() == PaymentStatus.PAID)
-                .mapToDouble(Payment::getAmount)
-                .sum();
-        if (totalPaid >= order.getTotalAmount()) {
-            order.setPaymentStatus(PaymentStatus.PAID);
-        } else if (totalPaid > 0) {
-            order.setPaymentStatus(PaymentStatus.PARTIALLY_PAID);
+        Payment savedPayment;
+        try {
+            savedPayment = paymentRepository.save(payment);
+        } catch (DataIntegrityViolationException e) {
+            throw new IllegalArgumentException("Transaction ID '" + paymentRequest.getTransactionId() + "' already exists");
         }
+
+        // Liên kết Payment với Order và đồng bộ paymentStatus
+        order.setPayment(savedPayment);
+        order.setPaymentStatus(savedPayment.getPaymentStatus());
         orderRepository.save(order);
 
-        return savedPayment;
+        return toResponse(savedPayment);
     }
 
-    // Lấy danh sách thanh toán (Admin, Staff)
-    public List<Payment> getAllPayments() {
-        return paymentRepository.findAll();
+    public List<PaymentResponse> getAllPayments() {
+        return paymentRepository.findAll().stream()
+                .map(this::toResponse)
+                .collect(Collectors.toList());
     }
 
-    // Lấy danh sách thanh toán của một đơn hàng (Admin, Staff, Customer)
-    public List<Payment> getPaymentsByOrder(Long orderId) {
-        return paymentRepository.findByOrderOrderId(orderId);
+    public List<PaymentResponse> getPaymentsByOrder(Long orderId) {
+        Payment payment = paymentRepository.findByOrderOrderId(orderId)
+                .orElse(null);
+        return payment != null ? List.of(toResponse(payment)) : List.of();
     }
 
-    // Lấy danh sách thanh toán của khách hàng (Customer)
-    public List<Payment> getPaymentsByUser(Long userId) {
-        return paymentRepository.findByUserId(userId);
+    public List<PaymentResponse> getPaymentsByUser(Long userId) {
+        return paymentRepository.findByUserId(userId).stream()
+                .map(this::toResponse)
+                .collect(Collectors.toList());
     }
 
-    // Cập nhật trạng thái thanh toán (Admin, Staff)
-    public Payment updatePaymentStatus(Long id, PaymentStatus status) {
+    public PaymentResponse updatePaymentStatus(Long id, UpdatePaymentRequest updatePaymentRequest) {
         Payment payment = paymentRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Payment not found with ID: " + id));
-        payment.setPaymentStatus(status);
+        payment.setPaymentStatus(updatePaymentRequest.getPaymentStatus());
         Payment updatedPayment = paymentRepository.save(payment);
 
-        // Cập nhật trạng thái thanh toán của đơn hàng
+        // Đồng bộ Order.paymentStatus với Payment.paymentStatus
         Order order = payment.getOrder();
-        double totalPaid = order.getPayments().stream()
-                .filter(p -> p.getPaymentStatus() == PaymentStatus.PAID)
-                .mapToDouble(Payment::getAmount)
-                .sum();
-        if (totalPaid >= order.getTotalAmount()) {
-            order.setPaymentStatus(PaymentStatus.PAID);
-        } else if (totalPaid > 0) {
-            order.setPaymentStatus(PaymentStatus.PARTIALLY_PAID);
-        } else {
-            order.setPaymentStatus(PaymentStatus.UNPAID);
-        }
+        order.setPaymentStatus(updatedPayment.getPaymentStatus());
         orderRepository.save(order);
 
-        return updatedPayment;
+        return toResponse(updatedPayment);
     }
 }

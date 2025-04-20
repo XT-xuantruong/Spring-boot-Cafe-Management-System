@@ -1,23 +1,13 @@
 package com.truong.backend.dto;
 
+import lombok.Getter;
+import lombok.Setter;
+
+@Setter
+@Getter
 public class OrderItemRequest {
+    // Getters and setters
     private Long itemId;
     private Integer quantity;
 
-    // Getters and setters
-    public Long getItemId() {
-        return itemId;
-    }
-
-    public void setItemId(Long itemId) {
-        this.itemId = itemId;
-    }
-
-    public Integer getQuantity() {
-        return quantity;
-    }
-
-    public void setQuantity(Integer quantity) {
-        this.quantity = quantity;
-    }
 }

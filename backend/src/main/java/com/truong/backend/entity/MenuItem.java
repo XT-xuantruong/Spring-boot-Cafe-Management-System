@@ -6,12 +6,12 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
-
 @Entity
 @Table(name = "menu_items")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class MenuItem {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -37,4 +37,5 @@ public class MenuItem {
 
     @UpdateTimestamp
     private LocalDateTime updatedAt;
+
 }

@@ -42,11 +42,26 @@ public class CafeTableService {
     public CafeTable updateTable(Long id, String tableNumber, Integer capacity, TableStatus status) {
         CafeTable table = cafeTableRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Table not found with ID: " + id));
-        table.setTableNumber(tableNumber);
-        table.setCapacity(capacity);
-        table.setStatus(status);
+
+        if (tableNumber != null && !tableNumber.equals(table.getTableNumber())) {
+            // Kiểm tra trùng số bàn nếu thay đổi
+            if (cafeTableRepository.findByTableNumber(tableNumber).isPresent()) {
+                throw new IllegalArgumentException("Table number already exists: " + tableNumber);
+            }
+            table.setTableNumber(tableNumber);
+        }
+
+        if (capacity != null) {
+            table.setCapacity(capacity);
+        }
+
+        if (status != null) {
+            table.setStatus(status);
+        }
+
         return cafeTableRepository.save(table);
     }
+
 
     // Xóa bàn (Admin)
     public void deleteTable(Long id) {

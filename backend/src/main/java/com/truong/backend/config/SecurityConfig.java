@@ -1,5 +1,8 @@
 package com.truong.backend.config;
 
+import com.truong.backend.entity.User;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -20,6 +23,7 @@ import java.util.Arrays;
 public class SecurityConfig {
     private final UserDetailsService userDetailsService;
     private final JwtRequestFilter jwtRequestFilter;
+    private static final Log logger = LogFactory.getLog(User.class);
 
     public SecurityConfig(UserDetailsService userDetailsService, JwtRequestFilter jwtRequestFilter) {
         this.userDetailsService = userDetailsService;
@@ -39,51 +43,51 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .cors(cors -> cors.configurationSource(corsConfigurationSource())) // Enable CORS
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(csrf -> csrf.disable())
                 .headers(headers -> headers.frameOptions(frameOptions -> frameOptions.sameOrigin()))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/api/users/profile").authenticated()
-                        .requestMatchers("/api/users").hasRole("ADMIN")
-                        .requestMatchers("/api/users/**").authenticated()
+                        .requestMatchers("/api/users").hasAuthority("ROLE_ADMIN")
+                        .requestMatchers("/api/users/**").hasAuthority("ROLE_ADMIN")
                         // Table endpoints
-                        .requestMatchers("/api/tables").hasAnyRole("ADMIN", "STAFF") // Admin và Staff xem danh sách bàn
-                        .requestMatchers("/api/tables/**").hasAnyRole("ADMIN", "STAFF") // Admin và Staff xem/cập nhật/xóa bàn
-                        .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/tables").hasRole("ADMIN") // Chỉ Admin tạo bàn
-                        .requestMatchers(org.springframework.http.HttpMethod.PUT, "/api/tables/**").hasRole("ADMIN") // Chỉ Admin cập nhật bàn
-                        .requestMatchers(org.springframework.http.HttpMethod.DELETE, "/api/tables/**").hasRole("ADMIN") // Chỉ Admin xóa bàn
-
+                        .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/tables").hasAuthority("ROLE_ADMIN")
+                        .requestMatchers(org.springframework.http.HttpMethod.PUT, "/api/tables/**").hasAuthority("ROLE_ADMIN")
+                        .requestMatchers(org.springframework.http.HttpMethod.DELETE, "/api/tables/**").hasAuthority("ROLE_ADMIN")
+                        .requestMatchers("/api/tables").hasAnyAuthority("ROLE_ADMIN", "ROLE_STAFF")
+                        .requestMatchers("/api/tables/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_STAFF")
                         // Reservation endpoints
-                        .requestMatchers("/api/reservations").hasAnyRole("ADMIN", "STAFF") // Admin và Staff xem danh sách đặt bàn
-                        .requestMatchers("/api/reservations/**").hasAnyRole("ADMIN", "STAFF") // Admin và Staff xem chi tiết đặt bàn
-                        .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/reservations").hasAnyRole("ADMIN", "STAFF", "CUSTOMER") // Tất cả tạo đặt bàn
-                        .requestMatchers(org.springframework.http.HttpMethod.PUT, "/api/reservations/**").hasAnyRole("ADMIN", "STAFF") // Admin và Staff cập nhật trạng thái
-                        .requestMatchers(org.springframework.http.HttpMethod.DELETE, "/api/reservations/**").hasAnyRole("ADMIN", "STAFF", "CUSTOMER") // Tất cả hủy đặt bàn
-                        .requestMatchers("/api/reservations/customer").hasRole("CUSTOMER") // Customer xem danh sách đặt bàn của mình
+                        .requestMatchers("/api/reservations/customer").hasAuthority("ROLE_CUSTOMER")
+                        .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/reservations").hasAnyAuthority("ROLE_ADMIN", "ROLE_STAFF", "ROLE_CUSTOMER")
+                        .requestMatchers(org.springframework.http.HttpMethod.PUT, "/api/reservations/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_STAFF")
+                        .requestMatchers(org.springframework.http.HttpMethod.DELETE, "/api/reservations/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_STAFF", "ROLE_CUSTOMER")
+                        .requestMatchers("/api/reservations").hasAnyAuthority("ROLE_ADMIN", "ROLE_STAFF")
+                        .requestMatchers("/api/reservations/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_STAFF")
+
 
                         // Menu Item endpoints
-                        .requestMatchers("/api/menu-items").permitAll() // Tất cả xem danh sách món
-                        .requestMatchers("/api/menu-items/**").permitAll() // Tất cả xem chi tiết món
-                        .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/menu-items").hasRole("ADMIN") // Chỉ Admin tạo món
-                        .requestMatchers(org.springframework.http.HttpMethod.PUT, "/api/menu-items/**").hasRole("ADMIN") // Chỉ Admin cập nhật món
-                        .requestMatchers(org.springframework.http.HttpMethod.DELETE, "/api/menu-items/**").hasRole("ADMIN") // Chỉ Admin xóa món
 
+                        .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/menu-items").hasAuthority("ROLE_ADMIN")
+                        .requestMatchers(org.springframework.http.HttpMethod.PUT, "/api/menu-items/**").hasAuthority("ROLE_ADMIN")
+                        .requestMatchers(org.springframework.http.HttpMethod.DELETE, "/api/menu-items/**").hasAuthority("ROLE_ADMIN")
+                        .requestMatchers("/api/menu-items").permitAll()
+                        .requestMatchers("/api/menu-items/**").permitAll()
                         // Order endpoints
-                        .requestMatchers("/api/orders").hasAnyRole("ADMIN", "STAFF") // Admin và Staff xem danh sách đơn hàng
-                        .requestMatchers("/api/orders/**").hasAnyRole("ADMIN", "STAFF") // Admin và Staff xem chi tiết đơn hàng
-                        .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/orders").hasAnyRole("ADMIN", "STAFF", "CUSTOMER") // Tất cả tạo đơn hàng
-                        .requestMatchers(org.springframework.http.HttpMethod.PUT, "/api/orders/**").hasAnyRole("ADMIN", "STAFF") // Admin và Staff cập nhật trạng thái
-                        .requestMatchers(org.springframework.http.HttpMethod.DELETE, "/api/orders/**").hasAnyRole("ADMIN", "STAFF") // Admin và Staff hủy đơn hàng
-                        .requestMatchers("/api/orders/customer").hasRole("CUSTOMER") // Customer xem danh sách đơn hàng của mình
+                        .requestMatchers("/api/orders/customer").hasAuthority("ROLE_CUSTOMER")
+                        .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/orders").hasAnyAuthority("ROLE_ADMIN", "ROLE_STAFF", "ROLE_CUSTOMER")
+                        .requestMatchers(org.springframework.http.HttpMethod.PUT, "/api/orders/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_STAFF")
+                        .requestMatchers(org.springframework.http.HttpMethod.DELETE, "/api/orders/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_STAFF")
+                        .requestMatchers("/api/orders").hasAnyAuthority("ROLE_ADMIN", "ROLE_STAFF")
+                        .requestMatchers("/api/orders/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_STAFF")
 
                         // Payment endpoints
-                        .requestMatchers("/api/payments").hasAnyRole("ADMIN", "STAFF") // Admin và Staff xem danh sách thanh toán
-                        .requestMatchers("/api/payments/order/**").hasAnyRole("ADMIN", "STAFF", "CUSTOMER") // Tất cả xem thanh toán của đơn hàng
-                        .requestMatchers("/api/payments/customer").hasRole("CUSTOMER") // Customer xem danh sách thanh toán của mình
-                        .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/payments").hasAnyRole("ADMIN", "STAFF") // Admin và Staff xử lý thanh toán
-                        .requestMatchers(org.springframework.http.HttpMethod.PUT, "/api/payments/**").hasAnyRole("ADMIN", "STAFF") // Admin và Staff cập nhật trạng thái thanh toán
+                        .requestMatchers("/api/payments").hasAnyAuthority("ROLE_ADMIN", "ROLE_STAFF")
+                        .requestMatchers("/api/payments/order/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_STAFF", "ROLE_CUSTOMER")
+                        .requestMatchers("/api/payments/customer").hasAuthority("ROLE_CUSTOMER")
+                        .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/payments").hasAnyAuthority("ROLE_ADMIN", "ROLE_STAFF")
+                        .requestMatchers(org.springframework.http.HttpMethod.PUT, "/api/payments/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_STAFF")
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
 

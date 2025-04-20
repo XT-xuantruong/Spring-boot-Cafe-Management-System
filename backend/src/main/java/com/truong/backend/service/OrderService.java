@@ -1,13 +1,8 @@
 package com.truong.backend.service;
 
 import com.truong.backend.dto.OrderItemRequest;
-import com.truong.backend.entity.MenuItem;
-import com.truong.backend.entity.OrderStatus;
-import com.truong.backend.entity.PaymentStatus;
-import com.truong.backend.entity.User;
-import com.truong.backend.entity.Order;
-import com.truong.backend.entity.OrderItem;
-import com.truong.backend.entity.CafeTable;
+import com.truong.backend.dto.OrderResponse;
+import com.truong.backend.entity.*;
 import com.truong.backend.repository.CafeTableRepository;
 import com.truong.backend.repository.OrderItemRepository;
 import com.truong.backend.repository.OrderRepository;
@@ -16,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class OrderService {
@@ -36,7 +32,7 @@ public class OrderService {
     private MenuItemService menuItemService;
 
     // Tạo đơn hàng mới (Admin, Staff, Customer)
-    public Order createOrder(Long userId, Long tableId, List<OrderItemRequest> items) {
+    public OrderResponse createOrder(Long userId, Long tableId, List<OrderItemRequest> items) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found with ID: " + userId));
         CafeTable table = cafeTableRepository.findById(tableId)
@@ -67,31 +63,38 @@ public class OrderService {
         }
 
         order.setTotalAmount(totalAmount);
-        return orderRepository.save(order);
+        Order savedOrder = orderRepository.save(order);
+        return mapToOrderResponse(savedOrder);
     }
 
     // Lấy danh sách đơn hàng (Admin, Staff)
-    public List<Order> getAllOrders() {
-        return orderRepository.findAll();
+    public List<OrderResponse> getAllOrders() {
+        return orderRepository.findAll().stream()
+                .map(this::mapToOrderResponse)
+                .collect(Collectors.toList());
     }
 
     // Lấy đơn hàng theo ID (Admin, Staff)
-    public Order getOrderById(Long id) {
-        return orderRepository.findById(id)
+    public OrderResponse getOrderById(Long id) {
+        Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Order not found with ID: " + id));
+        return mapToOrderResponse(order);
     }
 
     // Lấy danh sách đơn hàng của khách hàng (Customer)
-    public List<Order> getOrdersByUser(Long userId) {
-        return orderRepository.findByUserId(userId);
+    public List<OrderResponse> getOrdersByUser(Long userId) {
+        return orderRepository.findByUserId(userId).stream()
+                .map(this::mapToOrderResponse)
+                .collect(Collectors.toList());
     }
 
     // Cập nhật trạng thái đơn hàng (Admin, Staff)
-    public Order updateOrderStatus(Long id, OrderStatus status) {
+    public OrderResponse updateOrderStatus(Long id, OrderStatus status) {
         Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Order not found with ID: " + id));
         order.setOrderStatus(status);
-        return orderRepository.save(order);
+        Order updatedOrder = orderRepository.save(order);
+        return mapToOrderResponse(updatedOrder);
     }
 
     // Hủy đơn hàng (Admin, Staff)
@@ -101,5 +104,42 @@ public class OrderService {
         order.setOrderStatus(OrderStatus.CANCELLED);
         order.setPaymentStatus(PaymentStatus.CANCELLED);
         orderRepository.save(order);
+    }
+
+    // Hàm chuyển đổi từ Order sang OrderResponse
+    private OrderResponse mapToOrderResponse(Order order) {
+        OrderResponse response = new OrderResponse();
+        response.setOrderId(order.getOrderId());
+        response.setUserId(order.getUser().getId());
+        response.setTableId(order.getTable().getTableId());
+        response.setOrderStatus(order.getOrderStatus());
+        response.setPaymentStatus(order.getPaymentStatus());
+        response.setTotalAmount(order.getTotalAmount());
+        response.setCreatedAt(order.getCreatedAt());
+        response.setUpdatedAt(order.getUpdatedAt());
+
+        List<OrderResponse.OrderItemResponse> itemResponses = order.getOrderItems().stream()
+                .map(item -> {
+                    OrderResponse.OrderItemResponse itemResponse = new OrderResponse.OrderItemResponse();
+                    itemResponse.setOrderItemId(item.getOrderItemId());
+                    itemResponse.setItemId(item.getItem().getItemId());
+                    itemResponse.setItemName(item.getItem().getItemName());
+                    itemResponse.setQuantity(item.getQuantity());
+                    itemResponse.setUnitPrice(item.getUnitPrice());
+                    itemResponse.setSubtotal(item.getSubtotal());
+                    return itemResponse;
+                })
+                .collect(Collectors.toList());
+        response.setOrderItems(itemResponses);
+
+        return response;
+    }
+
+    public OrderItemRepository getOrderItemRepository() {
+        return orderItemRepository;
+    }
+
+    public void setOrderItemRepository(OrderItemRepository orderItemRepository) {
+        this.orderItemRepository = orderItemRepository;
     }
 }

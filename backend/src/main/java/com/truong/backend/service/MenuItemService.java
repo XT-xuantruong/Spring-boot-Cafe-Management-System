@@ -1,5 +1,6 @@
 package com.truong.backend.service;
 
+import com.truong.backend.dto.MenuItemRequest;
 import com.truong.backend.entity.MenuItem;
 import com.truong.backend.repository.MenuItemRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,15 +20,18 @@ public class MenuItemService {
     private CloudinaryService cloudinaryService;
 
     // Tạo món mới (Admin)
-    public MenuItem createMenuItem(String itemName, Double price, String category, MultipartFile image) throws IOException {
-        String imageUrl = image != null && !image.isEmpty() ? cloudinaryService.uploadImage(image) : null;
-
-        MenuItem menuItem = new MenuItem();
-        menuItem.setItemName(itemName);
-        menuItem.setPrice(price);
-        menuItem.setCategory(category);
-        menuItem.setImageUrl(imageUrl);
-        menuItem.setIsAvailable(true);
+    public MenuItem createMenuItem(MenuItemRequest menuItemRequest) {
+        if (menuItemRepository.existsByItemName(menuItemRequest.getItemName())) {
+            throw new IllegalArgumentException("Món ăn với tên '" + menuItemRequest.getItemName() + "' đã tồn tại");
+        }
+        MenuItem menuItem = MenuItem.builder()
+                .itemName(menuItemRequest.getItemName())
+                .description(menuItemRequest.getDescription())
+                .price(menuItemRequest.getPrice())
+                .category(menuItemRequest.getCategory())
+                .imageUrl(menuItemRequest.getImageUrl()) // Sử dụng imageUrl từ request
+                .isAvailable(menuItemRequest.getIsAvailable() != null ? menuItemRequest.getIsAvailable() : true)
+                .build();
         return menuItemRepository.save(menuItem);
     }
 
@@ -43,16 +47,29 @@ public class MenuItemService {
     }
 
     // Cập nhật món (Admin)
-    public MenuItem updateMenuItem(Long id, String itemName, Double price, String category, MultipartFile image) throws IOException {
+    public MenuItem updateMenuItem(Long id, MenuItemRequest menuItemRequest) {
         MenuItem menuItem = menuItemRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Menu item not found with ID: " + id));
-        menuItem.setItemName(itemName);
-        menuItem.setPrice(price);
-        menuItem.setCategory(category);
-        if (image != null && !image.isEmpty()) {
-            String imageUrl = cloudinaryService.uploadImage(image);
-            menuItem.setImageUrl(imageUrl);
+
+        if (menuItemRequest.getItemName() != null) {
+            menuItem.setItemName(menuItemRequest.getItemName());
         }
+        if (menuItemRequest.getDescription() != null) {
+            menuItem.setDescription(menuItemRequest.getDescription());
+        }
+        if (menuItemRequest.getPrice() != null) {
+            menuItem.setPrice(menuItemRequest.getPrice());
+        }
+        if (menuItemRequest.getCategory() != null) {
+            menuItem.setCategory(menuItemRequest.getCategory());
+        }
+        if (menuItemRequest.getIsAvailable() != null) {
+            menuItem.setIsAvailable(menuItemRequest.getIsAvailable());
+        }
+        if (menuItemRequest.getImageUrl() != null) {
+            menuItem.setImageUrl(menuItemRequest.getImageUrl()); // Cập nhật imageUrl
+        }
+
         return menuItemRepository.save(menuItem);
     }
 

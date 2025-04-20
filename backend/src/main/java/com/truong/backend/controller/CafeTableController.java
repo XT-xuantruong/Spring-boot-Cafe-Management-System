@@ -1,5 +1,6 @@
 package com.truong.backend.controller;
 
+import com.truong.backend.dto.CafeTableRequest;
 import com.truong.backend.entity.CafeTable;
 import com.truong.backend.entity.TableStatus;
 import com.truong.backend.service.CafeTableService;
@@ -34,20 +35,22 @@ public class CafeTableController {
     // Tạo bàn mới (Admin)
     @PostMapping
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public ResponseEntity<CafeTable> createTable(@RequestParam String tableNumber, @RequestParam Integer capacity) {
-        return ResponseEntity.ok(cafeTableService.createTable(tableNumber, capacity));
+    public ResponseEntity<CafeTable> createTable(@RequestBody CafeTableRequest request) {
+        return ResponseEntity.ok(
+                cafeTableService.createTable(request.getTableNumber(), request.getCapacity())
+        );
     }
-
     // Cập nhật thông tin bàn (Admin)
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<CafeTable> updateTable(
             @PathVariable Long id,
-            @RequestParam String tableNumber,
-            @RequestParam Integer capacity,
-            @RequestParam TableStatus status) {
-        return ResponseEntity.ok(cafeTableService.updateTable(id, tableNumber, capacity, status));
+            @RequestBody CafeTableRequest request) {
+        return ResponseEntity.ok(
+                cafeTableService.updateTable(id, request.getTableNumber(), request.getCapacity(), request.getStatus())
+        );
     }
+
 
     // Xóa bàn (Admin)
     @DeleteMapping("/{id}")

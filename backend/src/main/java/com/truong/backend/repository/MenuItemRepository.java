@@ -13,4 +13,7 @@ public interface MenuItemRepository extends JpaRepository<MenuItem, Long> {
 
     // Lấy danh sách món ăn đang có sẵn
     List<MenuItem> findByIsAvailableTrue();
+
+    // Kiểm tra xem món ăn có itemName đã tồn tại hay không
+    boolean existsByItemName(String itemName);
 }
