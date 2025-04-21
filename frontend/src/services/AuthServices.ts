@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { baseRestApi } from "./baseRestApi";
-import { setCredentials, setUser } from "@/stores/authSlice";
+import { logout, setCredentials, setUser } from "@/stores/authSlice";
 import { RootState, store } from "@/stores";
-import { UserCredentials, UserInfo } from "@/interfaces/user";
+import { UserCredentials, User } from "@/interfaces/user";
 import { ApiResponse } from "@/interfaces/apiResponse";
 import { userServices } from "./UserSerivces";
 
@@ -54,7 +54,7 @@ export const authServices = baseRestApi.injectEndpoints({
       },
     }),
     register: builder.mutation<
-      { data: UserInfo; message: string; status: number },
+      { data: User; message: string; status: number },
       UserCredentials
     >({
       query: (credentials) => ({
@@ -62,12 +62,11 @@ export const authServices = baseRestApi.injectEndpoints({
         method: "POST",
         body: credentials,
       }),
-      transformResponse: (response: ApiResponse<UserInfo>) => ({
+      transformResponse: (response: ApiResponse<User>) => ({
         data: response.data,
         message: response.message,
         status: response.status,
       }),
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         try {
           const { data } = await queryFulfilled;
@@ -180,12 +179,47 @@ export const authServices = baseRestApi.injectEndpoints({
         try {
           const { data } = await queryFulfilled;
           dispatch(
+            setCredentials({
+              accessToken: data.data.accessToken,
+              refreshToken: data.data.refreshToken,
+            })
+          );
+          const meResult = await dispatch(
+            userServices.endpoints.getMe.initiate(undefined)
+          ).unwrap();
+          dispatch(
             setUser({
-              user: data.data.user,
+              user: meResult.data,
             })
           );
         } catch (error) {
           console.error("Login with Google failed:", error);
+        }
+      },
+    }),
+    logout: builder.mutation<
+      { data: any; message: string; status: number },
+      void
+    >({
+      query: () => ({
+        url: `${entity}/logout`,
+        method: "POST",
+        body: {
+          refreshToken: (store.getState() as RootState).auth.token
+            ?.refreshToken,
+        },
+      }),
+      transformResponse: (response: ApiResponse<any>) => ({
+        data: response.data,
+        message: response.message,
+        status: response.status,
+      }),
+      async onQueryStarted(_, { dispatch, queryFulfilled }) {
+        try {
+          await queryFulfilled;
+          dispatch(logout());
+        } catch (error) {
+          console.error("Logout failed:", error);
         }
       },
     }),
@@ -196,7 +230,5 @@ export const {
   useLoginMutation,
   useRegisterMutation,
   useRefreshTokenMutation,
-  useSendOtpMutation,
-  useVerifyOtpMutation,
-  useLoginGoogleMutation,
+  useLogoutMutation,
 } = authServices;

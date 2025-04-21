@@ -8,13 +8,11 @@ import ReusableForm, {
   FormControl,
   FormMessage,
   Input,
-} from "@/components/ReusableForm";
+} from "@/components/ReuseableForm";
 import { Eye, EyeOff } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useLoginMutation } from "@/services/AuthServices";
 import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "@/contexts/AuthContext";
-import { authService } from "@/services/AuthServices";
-import { userService } from "@/services/UserServices";
 
 const loginSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -24,7 +22,7 @@ const loginSchema = z.object({
 export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const { setAuthInfo } = useAuth()
+  const [login] = useLoginMutation();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -33,44 +31,17 @@ export default function LoginPage() {
   const onSubmit = async (formData: z.infer<typeof loginSchema>) => {
     setLoading(true);
     try {
-      const response = await authService.login(formData.email, formData.password)
-      if (response.data.status === "success") {
-        const { access_token, refresh_token } = response.data.data;
-        setAuthInfo({
-            token:{
-                access_token,
-                refresh_token,
-            },
-            user: undefined,
-        });
-        const user = await userService.getProfile()
-        if (user.status === 200) {
-          setAuthInfo({
-            token: {
-              access_token,
-              refresh_token,
-            },
-            user: user.data.data,
+      await login({
+        email: formData.email,
+        password: formData.password
+      }).unwrap()
+        .then(() => {
+          toast({
+            title: "Login successful.",
+            description: "Welcome back!",
           });
-        }
-        toast({
-          title: "Login successful",
-          description: "Welcome back!",
+          navigate("/");
         });
-        console.log("User data:", user.data.data);
-        
-        if (user.data.data.role === "ADMIN") {
-          navigate("/admin");
-        } else {
-          navigate("/profile");
-        }
-      } else {
-        toast({
-          variant: "destructive",
-          title: "Login failed",
-          description: response.data.message || "An unknown error occurred",
-        });
-      }
     } catch (err:any) {
       const errorMessage = err?.data?.message || "An unknown error occurred";
       toast({
@@ -83,6 +54,8 @@ export default function LoginPage() {
       setLoading(false);
     }
   };
+
+  
   return (
       <div className="w-full max-w-md p-8 bg-white border rounded-lg shadow-lg">
         <h2 className="text-2xl font-bold mb-6 text-center text-gray-800">Sign In</h2>
@@ -141,7 +114,6 @@ export default function LoginPage() {
             </>
           )}
         </ReusableForm>
- 
         <p className="text-center text-gray-600 mt-4">
           Don't have an account? <Link to="/register" className="underline hover:text-blue-900">Sign up now</Link>
         </p>

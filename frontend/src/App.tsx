@@ -1,51 +1,60 @@
-import "./App.css";
-import { Route, Routes, Navigate } from "react-router-dom";
-import { publicRoutes, privateRoutes, adminRoutes } from "./routes";
+import { Route, Routes } from 'react-router-dom';
+// import { useSelector } from 'react-redux';
+// import { RootState } from '@/stores';
+import { publicRoutes, } from '@/routes';
+import './App.css';
+import NotFoundPage from './pages/NotFoundPage';
 
-function App() {
-  const authInfo = JSON.parse(localStorage.getItem("authInfo") || "{}");
-  const user = authInfo?.user;
-  const isAdmin = user?.role === "ADMIN";
+// Component để bảo vệ private routes
+// const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+//   const accessToken = useSelector((state: RootState) => state.auth.token?.accessToken);
+//   const isAuthenticated = !!accessToken;
+//   return isAuthenticated ? children : <Navigate to="/login" replace />;
+// };
 
-  // Helper để render routes
-  const renderRoutes = (routes: any[]) =>
-    routes.map(({ path, component: Component, layout: Layout }) => (
-      <Route
-        key={path}
-        path={path}
-        element={
-          Layout ? (
-            <Layout>
-              <Component />
-            </Layout>
-          ) : (
-            <Component />
-          )
-        }
-      />
-    ));
-
+export default function App() {
   return (
-    <div>
+    <>
       <Routes>
-        
         {/* Public Routes */}
-        {renderRoutes(publicRoutes)}
+        {publicRoutes.map(({ path, component: Component, layout: Layout }) => (
+          <Route
+            key={path}
+            path={path}
+            element={
+              Layout ? (
+                <Layout>
+                  <Component />
+                </Layout>
+              ) : (
+                <Component />
+              )
+            }
+          />
+        ))}
 
-        {/* Private Routes (chỉ khi đã login) */}
-        {user && renderRoutes(privateRoutes)}
+        {/* Private Routes */}
+        {/* {privateRoutes.map(({ path, component: Component, layout: Layout }) => (
+          <Route
+            key={path}
+            path={path}
+            element={
+              <ProtectedRoute>
+                {Layout ? (
+                  <Layout>
+                    <Component />
+                  </Layout>
+                ) : (
+                  <Component />
+                )}
+              </ProtectedRoute>
+            }
+          />
+        ))} */}
 
-        {/* Admin Routes (chỉ khi là ADMIN) */}
-        {isAdmin && renderRoutes(adminRoutes)}
-
-        {/* Fallback Route */}
-        <Route
-          path="*"
-          element={<Navigate to={user ? "/profile" : "/login"} replace />}
-        />
+        {/* Route 404 (tùy chọn) */}
+        <Route path="*" element={<NotFoundPage/>} />
       </Routes>
-    </div>
+    </>
   );
 }
-
-export default App;

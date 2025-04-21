@@ -1,9 +1,7 @@
-import React from 'react';
-
-const HomePage: React.FC = () => {
+const HomePage = () => {
     return (
         <div>
-            Home Page
+            Home
         </div>
     );
 };

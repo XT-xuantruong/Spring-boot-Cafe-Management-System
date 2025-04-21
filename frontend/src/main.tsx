@@ -1,20 +1,23 @@
-import React from "react";
-import ReactDOM from "react-dom/client";
-import { BrowserRouter } from "react-router-dom";
-import { Provider } from 'react-redux';
-import { PersistGate } from 'redux-persist/integration/react'; 
-import App from "./App.tsx";
-import "./index.css";
-import { store, persistor } from "./stores/index.ts"; 
+import { createRoot } from 'react-dom/client'
+import './index.css'
+import App from './App.tsx'
+import React from 'react'
+import { Provider } from 'react-redux'
+import { persistor, store } from './stores/index.ts'
+import { PersistGate } from 'redux-persist/integration/react'
+import { BrowserRouter } from 'react-router-dom'
+import { SidebarProvider } from './components/ui/sidebar.tsx'
 
-ReactDOM.createRoot(document.getElementById("root")!).render(
+createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <Provider store={store}>
       <PersistGate loading={null} persistor={persistor}>
         <BrowserRouter>
-          <App />
+          <SidebarProvider>
+            <App />
+          </SidebarProvider>
         </BrowserRouter>
       </PersistGate>
     </Provider>
   </React.StrictMode>
-);
+)

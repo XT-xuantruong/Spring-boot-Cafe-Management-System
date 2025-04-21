@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { z } from "zod";
 import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import ReusableForm, {
   FormField,
   FormItem,
@@ -9,17 +10,14 @@ import ReusableForm, {
   FormMessage,
   Input,
   Checkbox,
-} from "@/components/ReusableForm";
+} from "@/components/ReuseableForm";
 import { Eye, EyeOff } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { useNavigate } from "react-router-dom";
-import { authService } from "@/services/AuthServices";
+import { useRegisterMutation } from "@/services/AuthServices";
 
 const registerSchema = z
   .object({
     name: z.string().min(2, "Name must be at least 2 characters"),
-    phone: z.string().min(10, "Phone number must be at least 10 digits").max(10, "Phone number must be exactly 10 digits"),
-    address: z.string().min(5, "Address must be at least 5 characters"),
     email: z.string().email("Invalid email address"),
     password: z
       .string()
@@ -43,6 +41,7 @@ export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const navigate = useNavigate();
+  const [register] = useRegisterMutation();
   const { toast } = useToast();
 
   const togglePasswordVisibility = () => setShowPassword(!showPassword);
@@ -51,10 +50,14 @@ export default function RegisterPage() {
   const onSubmit = async (formData: z.infer<typeof registerSchema>) => {
     setLoading(true);
     try {
-      const response = await authService.register(formData);
+      const response = await register({
+        name: formData.name,
+        email: formData.email,
+        password: formData.password,
+      }).unwrap();
       toast({
         title: "Registration successful.",
-        description: response.data.message,
+        description: response.message,
       })
       navigate("/login");
     } catch (err : any) {
@@ -97,33 +100,6 @@ export default function RegisterPage() {
                   <FormLabel>Full Name</FormLabel>
                   <FormControl>
                     <Input type="text" placeholder="Enter your full name" disabled={loading} {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={control}
-              name="phone"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Phone</FormLabel>
-                  <FormControl>
-                    <Input type="text" placeholder="Enter your phone" disabled={loading} {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={control}
-              name="address"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Address</FormLabel>
-                  <FormControl>
-                    <Input type="text" placeholder="Enter your address" disabled={loading} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -225,6 +201,9 @@ export default function RegisterPage() {
           </>
         )}
       </ReusableForm>
+      <p className="text-center text-gray-600 mt-4">
+        Already have an account? <Link to="/login" className="underline hover:text-blue-900">Login now</Link>
+      </p>
     </div>
   );
 }

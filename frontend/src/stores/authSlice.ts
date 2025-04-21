@@ -1,31 +1,35 @@
-import { PaginatedResponse } from '@/interfaces/friend';
-import { UserInfo } from '@/interfaces/user';
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { User } from "@/interfaces/user";
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 interface AuthState {
   token: {
     accessToken: string | null;
     refreshToken: string | null;
   } | null;
-  user: UserInfo | null;
-  friends: PaginatedResponse<UserInfo>|null;
+  user: User | null;
 }
 
 const initialState: AuthState = {
   token: null,
   user: null,
-  friends: null,
 };
 
 const authSlice = createSlice({
-  name: 'auth',
+  name: "auth",
   initialState,
   reducers: {
-    setFriendOfUser:(
+    setAuth: (
       state,
-      action: PayloadAction<{friends: PaginatedResponse<UserInfo>}>
-    )=>{
-      state.friends=action.payload.friends
+      action: PayloadAction<{
+        user: object;
+        token: { accessToken: string; refreshToken: string };
+      }>
+    ) => {
+      state.user = action.payload.user as AuthState["user"];
+      state.token = {
+        accessToken: action.payload.token.accessToken,
+        refreshToken: action.payload.token.refreshToken,
+      };
     },
     setCredentials: (
       state,
@@ -42,7 +46,7 @@ const authSlice = createSlice({
         user: object;
       }>
     ) => {
-      state.user = action.payload.user as AuthState['user'];
+      state.user = action.payload.user as AuthState["user"];
     },
     logout: (state) => {
       state.token = null;
@@ -51,5 +55,5 @@ const authSlice = createSlice({
   },
 });
 
-export const { setCredentials, setUser, setFriendOfUser, logout } = authSlice.actions;
+export const { setAuth, setCredentials, setUser, logout } = authSlice.actions;
 export default authSlice.reducer;

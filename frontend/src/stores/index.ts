@@ -1,9 +1,9 @@
-import { combineReducers } from "redux";
 import { configureStore } from "@reduxjs/toolkit";
+import { baseRestApi } from "@/services/baseRestApi";
 import { persistReducer, persistStore } from "redux-persist";
 import storage from "redux-persist/lib/storage";
+import { combineReducers } from "redux";
 import authReducer from "./authSlice";
-import { baseRestApi } from "@/services/baseRestApi";
 
 const persistConfig = {
   key: "root",

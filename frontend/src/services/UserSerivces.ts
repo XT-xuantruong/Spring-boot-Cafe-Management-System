@@ -1,35 +1,36 @@
 import { baseRestApi } from "./baseRestApi";
-import { UpdateUserDto, UserInfo } from "@/interfaces/user";
+import { UserUpdate, User } from "@/interfaces/user";
 import { ApiResponse } from "@/interfaces/apiResponse";
+// import { RootState } from '@/stores';
 import { setUser } from "@/stores/authSlice";
 
 const entity = "users";
 
 export const userServices = baseRestApi.injectEndpoints({
   endpoints: (builder) => ({
-    getMe: builder.query<{ data: UserInfo; message: string }, void>({
+    getMe: builder.query<{ data: User; message: string }, void>({
       query: () => ({
         url: `${entity}/me`,
         method: "GET",
       }),
-      transformResponse: (response: ApiResponse<UserInfo>) => ({
+      transformResponse: (response: ApiResponse<User>) => ({
         data: response.data,
         message: response.message,
       }),
     }),
-    getById: builder.query<{ data: UserInfo; message: string }, string>({
+    getById: builder.query<{ data: User; message: string }, string>({
       query: (id = "") => ({
         url: `${entity}/${id}`,
         method: "GET",
       }),
-      transformResponse: (response: ApiResponse<UserInfo>) => ({
+      transformResponse: (response: ApiResponse<User>) => ({
         data: response.data,
         message: response.message,
       }),
     }),
     updateUser: builder.mutation<
-      { data: UserInfo; message: string },
-      { data: UpdateUserDto; file?: File }
+      { data: User; message: string },
+      { data: UserUpdate; file?: File }
     >({
       query: ({ data, file }) => {
         const formData = new FormData();
@@ -48,7 +49,7 @@ export const userServices = baseRestApi.injectEndpoints({
           body: formData,
         };
       },
-      transformResponse: (response: ApiResponse<UserInfo>) => ({
+      transformResponse: (response: ApiResponse<User>) => ({
         data: response.data,
         message: response.message,
       }),

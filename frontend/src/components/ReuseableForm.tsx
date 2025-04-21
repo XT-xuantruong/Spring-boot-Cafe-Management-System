@@ -29,7 +29,7 @@ interface ReusableFormProps<T extends FieldValues> {
   submitText?: string;
   defaultValues?: DefaultValues<T>;
   isLoading?: boolean;
-  hideSubmitButton?: boolean;
+  hideSubmitButton?: boolean; // Thêm prop để ẩn nút submit
 }
 
 export default function ReusableForm<T extends FieldValues>({
