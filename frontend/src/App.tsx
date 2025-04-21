@@ -1,35 +1,60 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { Route, Routes } from 'react-router-dom';
+// import { useSelector } from 'react-redux';
+// import { RootState } from '@/stores';
+import { publicRoutes, } from '@/routes';
+import './App.css';
+import NotFoundPage from './pages/NotFoundPage';
 
-function App() {
-  const [count, setCount] = useState(0)
+// Component để bảo vệ private routes
+// const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+//   const accessToken = useSelector((state: RootState) => state.auth.token?.accessToken);
+//   const isAuthenticated = !!accessToken;
+//   return isAuthenticated ? children : <Navigate to="/login" replace />;
+// };
 
+export default function App() {
   return (
     <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
-}
+      <Routes>
+        {/* Public Routes */}
+        {publicRoutes.map(({ path, component: Component, layout: Layout }) => (
+          <Route
+            key={path}
+            path={path}
+            element={
+              Layout ? (
+                <Layout>
+                  <Component />
+                </Layout>
+              ) : (
+                <Component />
+              )
+            }
+          />
+        ))}
 
-export default App
+        {/* Private Routes */}
+        {/* {privateRoutes.map(({ path, component: Component, layout: Layout }) => (
+          <Route
+            key={path}
+            path={path}
+            element={
+              <ProtectedRoute>
+                {Layout ? (
+                  <Layout>
+                    <Component />
+                  </Layout>
+                ) : (
+                  <Component />
+                )}
+              </ProtectedRoute>
+            }
+          />
+        ))} */}
+
+        {/* Route 404 (tùy chọn) */}
+        <Route path="*" element={<NotFoundPage/>} />
+      </Routes>
+    </>
+  );
+}
