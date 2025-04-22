@@ -13,6 +13,8 @@ import { Eye, EyeOff } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useLoginMutation } from "@/services/AuthServices";
 import { Link, useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
+import { RootState } from "@/stores";
 
 const loginSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -22,6 +24,7 @@ const loginSchema = z.object({
 export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const userRole = useSelector((state: RootState) => state.auth.user?.role);
   const [login] = useLoginMutation();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -40,7 +43,11 @@ export default function LoginPage() {
             title: "Login successful.",
             description: "Welcome back!",
           });
-          navigate("/");
+          if (userRole === "ADMIN" || userRole === "STAFF") {
+            navigate("/admin/dashboard")
+          } else{
+            navigate("/")
+          }
         });
     } catch (err:any) {
       const errorMessage = err?.data?.message || "An unknown error occurred";
