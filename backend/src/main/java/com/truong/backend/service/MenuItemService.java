@@ -1,6 +1,6 @@
 package com.truong.backend.service;
 
-import com.truong.backend.dto.MenuItemRequest;
+import com.truong.backend.dto.request.MenuItemRequestDTO;
 import com.truong.backend.entity.MenuItem;
 import com.truong.backend.repository.MenuItemRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,7 +19,7 @@ public class MenuItemService {
     private CloudinaryService cloudinaryService;
 
     // Tạo món mới (Admin)
-    public MenuItem createMenuItem(MenuItemRequest menuItemRequest, MultipartFile image) {
+    public MenuItem createMenuItem(MenuItemRequestDTO menuItemRequest, MultipartFile image) {
         if (menuItemRepository.existsByItemName(menuItemRequest.getItemName())) {
             throw new IllegalArgumentException("Món ăn với tên '" + menuItemRequest.getItemName() + "' đã tồn tại");
         }
@@ -49,7 +49,7 @@ public class MenuItemService {
     }
 
     // Cập nhật món (Admin)
-    public MenuItem updateMenuItem(Long id, MenuItemRequest menuItemRequest, MultipartFile image) {
+    public MenuItem updateMenuItem(Long id, MenuItemRequestDTO menuItemRequest, MultipartFile image) {
         MenuItem menuItem = menuItemRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Menu item not found with ID: " + id));
 

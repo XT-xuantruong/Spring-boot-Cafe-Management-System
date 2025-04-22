@@ -1,7 +1,5 @@
 package com.truong.backend.service;
 
-import com.truong.backend.dto.OrderItemRequest;
-import com.truong.backend.dto.OrderResponse;
 import com.truong.backend.entity.*;
 import com.truong.backend.repository.CafeTableRepository;
 import com.truong.backend.repository.OrderItemRepository;

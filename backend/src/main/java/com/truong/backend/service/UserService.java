@@ -1,11 +1,9 @@
 package com.truong.backend.service;
 
-import com.truong.backend.dto.UpdateProfileRequest;
-import com.truong.backend.dto.UpdateUserRequest;
-import com.truong.backend.dto.UserRequest;
-import com.truong.backend.dto.UserResponse;
-import com.truong.backend.entity.Role;
+import com.truong.backend.dto.request.UserRequestDTO;
+import com.truong.backend.dto.response.UserResponseDTO;
 import com.truong.backend.entity.User;
+import com.truong.backend.mapper.UserMapper;
 import com.truong.backend.repository.UserRepository;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -19,100 +17,90 @@ import java.util.stream.Collectors;
 @Service
 public class UserService {
     private final UserRepository userRepository;
+    private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
 
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public UserService(UserRepository userRepository, UserMapper userMapper, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
+        this.userMapper = userMapper;
         this.passwordEncoder = passwordEncoder;
     }
 
-    public List<UserResponse> getAllUsers() {
+    // Lấy tất cả người dùng
+    public List<UserResponseDTO> getAllUsers() {
         return userRepository.findAll().stream()
-                .map(UserResponse::new)
+                .map(userMapper::toResponseDTO)
                 .collect(Collectors.toList());
     }
 
-    public UserResponse getUserById(Long id) {
+    // Lấy người dùng theo ID
+    public UserResponseDTO getUserById(Long id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
-        return new UserResponse(user);
+        return userMapper.toResponseDTO(user);
     }
 
+    // Xóa người dùng
     public void deleteUser(Long id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
         userRepository.delete(user);
     }
 
-    public UserResponse getCurrentUserProfile() {
+    // Lấy hồ sơ người dùng hiện tại
+    public UserResponseDTO getCurrentUserProfile() {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
-        return new UserResponse(user);
+        return userMapper.toResponseDTO(user);
     }
-    public UserResponse createUser(UserRequest request) {
+
+    // Tạo người dùng mới
+    public UserResponseDTO createUser(UserRequestDTO request) {
         // Kiểm tra xem email đã tồn tại chưa
-        Optional<User> u = userRepository.findByEmail(request.getEmail());
-        if (u.isPresent()){
+        Optional<User> existingUser = userRepository.findByEmail(request.getEmail());
+        if (existingUser.isPresent()) {
             throw new RuntimeException("Email already exists");
         }
 
-        // Tạo entity User từ RegisterRequest
-        User user = new User();
-        user.setEmail(request.getEmail());
-        user.setPassword(passwordEncoder.encode(request.getPassword())); // Mã hóa password
-        user.setName(request.getName());
-        user.setPhone(request.getPhone());
-        user.setAddress(request.getAddress());
-        user.setRole(request.getRole());
+        // Ánh xạ DTO sang Entity
+        User user = userMapper.toEntity(request, passwordEncoder);
 
-        // Lưu user vào database
+        // Lưu vào database
         User savedUser = userRepository.save(user);
 
-        // Chuyển đổi sang UserResponse
-        return new UserResponse(savedUser);
+        // Ánh xạ sang ResponseDTO
+        return userMapper.toResponseDTO(savedUser);
     }
 
-    public UserResponse userUpdate(UpdateUserRequest request) {
-        User user = userRepository.findById(request.id)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found with id: " + request.id));
-        if (request.getName() != null && !request.getName().isEmpty()) {
-            user.setName(request.getName());
-        }
-        if (request.getPassword() != null && !request.getPassword().isEmpty()) {
-            user.setPassword(passwordEncoder.encode(request.getPassword()));
-        }
-        if (request.getPhone() != null) {
-            user.setPhone(request.getPhone());
-        }
-        if (request.getAddress() != null) {
-            user.setAddress(request.getAddress());
-        }
-        if (request.getRole() != null) {
-            Role role = request.getRole();
-            user.setRole(role);
-        }
-        userRepository.save(user);
-        return new UserResponse(user);
+    // Cập nhật người dùng theo ID
+    public UserResponseDTO userUpdate(Long id, UserRequestDTO request) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found with id: " + id));
+
+        // Cập nhật Entity từ DTO
+        userMapper.updateEntity(user, request, passwordEncoder);
+
+        // Lưu vào database
+        User updatedUser = userRepository.save(user);
+
+        // Ánh xạ sang ResponseDTO
+        return userMapper.toResponseDTO(updatedUser);
     }
 
-    public UserResponse updateUserProfile(UpdateProfileRequest request) {
+    // Cập nhật hồ sơ người dùng hiện tại
+    public UserResponseDTO updateUserProfile(UserRequestDTO request) {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
-        if (request.getName() != null && !request.getName().isEmpty()) {
-            user.setName(request.getName());
-        }
-        if (request.getPassword() != null && !request.getPassword().isEmpty()) {
-            user.setPassword(passwordEncoder.encode(request.getPassword()));
-        }
-        if (request.getPhone() != null) {
-            user.setPhone(request.getPhone());
-        }
-        if (request.getAddress() != null) {
-            user.setAddress(request.getAddress());
-        }
-        userRepository.save(user);
-        return new UserResponse(user);
+
+        // Cập nhật Entity từ DTO
+        userMapper.updateEntity(user, request, passwordEncoder);
+
+        // Lưu vào database
+        User updatedUser = userRepository.save(user);
+
+        // Ánh xạ sang ResponseDTO
+        return userMapper.toResponseDTO(updatedUser);
     }
 }
