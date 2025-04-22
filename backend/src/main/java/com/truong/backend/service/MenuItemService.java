@@ -24,14 +24,12 @@ public class MenuItemService {
         if (menuItemRepository.existsByItemName(menuItemRequest.getItemName())) {
             throw new IllegalArgumentException("Món ăn với tên '" + menuItemRequest.getItemName() + "' đã tồn tại");
         }
-        MenuItem menuItem = MenuItem.builder()
-                .itemName(menuItemRequest.getItemName())
-                .description(menuItemRequest.getDescription())
-                .price(menuItemRequest.getPrice())
-                .category(menuItemRequest.getCategory())
-                .imageUrl(menuItemRequest.getImageUrl()) // Sử dụng imageUrl từ request
-                .isAvailable(menuItemRequest.getIsAvailable() != null ? menuItemRequest.getIsAvailable() : true)
-                .build();
+        MenuItem menuItem = new MenuItem();
+        menuItem.setItemName(menuItemRequest.getItemName());
+        menuItem.setDescription(menuItemRequest.getDescription());
+        menuItem.setCategory(menuItemRequest.getCategory());
+        menuItem.setPrice(menuItemRequest.getPrice());
+        menuItem.setAvailable(menuItemRequest.getAvailable());
         return menuItemRepository.save(menuItem);
     }
 
@@ -63,8 +61,8 @@ public class MenuItemService {
         if (menuItemRequest.getCategory() != null) {
             menuItem.setCategory(menuItemRequest.getCategory());
         }
-        if (menuItemRequest.getIsAvailable() != null) {
-            menuItem.setIsAvailable(menuItemRequest.getIsAvailable());
+        if (menuItemRequest.getAvailable() != null) {
+            menuItem.setAvailable(menuItemRequest.getAvailable());
         }
         if (menuItemRequest.getImageUrl() != null) {
             menuItem.setImageUrl(menuItemRequest.getImageUrl()); // Cập nhật imageUrl

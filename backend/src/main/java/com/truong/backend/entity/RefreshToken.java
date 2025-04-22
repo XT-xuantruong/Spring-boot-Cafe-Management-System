@@ -1,13 +1,9 @@
 package com.truong.backend.entity;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
 
 import java.time.Instant;
 
-@Setter
-@Getter
 @Entity
 @Table(name = "refresh_tokens")
 public class RefreshToken {
@@ -29,4 +25,35 @@ public class RefreshToken {
 
     public RefreshToken(User user, String token, Instant expiryDate) {}
 
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
+    }
+
+    public String getToken() {
+        return token;
+    }
+
+    public void setToken(String token) {
+        this.token = token;
+    }
+
+    public Instant getExpiryDate() {
+        return expiryDate;
+    }
+
+    public void setExpiryDate(Instant expiryDate) {
+        this.expiryDate = expiryDate;
+    }
 }

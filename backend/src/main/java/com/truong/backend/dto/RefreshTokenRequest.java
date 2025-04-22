@@ -1,12 +1,5 @@
 package com.truong.backend.dto;
 
-import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
-
-@Setter
-@Getter
-@Data
 public class RefreshTokenRequest {
     private String refreshToken;
 
@@ -17,4 +10,11 @@ public class RefreshTokenRequest {
     public RefreshTokenRequest() {
     }
 
+    public String getRefreshToken() {
+        return refreshToken;
+    }
+
+    public void setRefreshToken(String refreshToken) {
+        this.refreshToken = refreshToken;
+    }
 }

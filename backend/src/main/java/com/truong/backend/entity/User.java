@@ -21,6 +21,8 @@ public class User implements UserDetails {
     @Column(unique = true)
     private String email;
 
+    private String avatar_url;
+
     private String password;
 
     private String name;
@@ -83,44 +85,36 @@ public class User implements UserDetails {
                 '}';
     }
 
-    public Long getId() {
-        return id;
+    public List<RefreshToken> getRefreshToken() {
+        return refreshToken;
     }
 
-    public void setId(Long id) {
-        this.id = id;
+    public void setRefreshToken(List<RefreshToken> refreshToken) {
+        this.refreshToken = refreshToken;
     }
 
-    public String getEmail() {
-        return email;
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
     }
 
-    public void setEmail(String email) {
-        this.email = email;
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
     }
 
-    public String getPassword() {
-        return password;
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
     }
 
-    public void setPassword(String password) {
-        this.password = password;
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
     }
 
-    public String getName() {
-        return name;
+    public Role getRole() {
+        return role;
     }
 
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getPhone() {
-        return phone;
-    }
-
-    public void setPhone(String phone) {
-        this.phone = phone;
+    public void setRole(Role role) {
+        this.role = role;
     }
 
     public String getAddress() {
@@ -131,12 +125,53 @@ public class User implements UserDetails {
         this.address = address;
     }
 
-    public Role getRole() {
-        return role;
+    public String getPhone() {
+        return phone;
     }
 
-    public void setRole(Role role) {
-        this.role = role;
+    public void setPhone(String phone) {
+        this.phone = phone;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    @Override
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public String getAvatar_url() {
+        return avatar_url;
+    }
+
+    public void setAvatar_url(String avatar_url) {
+        this.avatar_url = avatar_url;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 }
 
