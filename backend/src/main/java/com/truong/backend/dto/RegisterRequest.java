@@ -14,16 +14,11 @@ public class RegisterRequest {
     @NotBlank(message = "Name is required")
     private String name;
 
-    private String phone;
 
-    private String address;
-
-    public RegisterRequest(String email, String password, String name, String phone, String address) {
+    public RegisterRequest(String email, String password, String name) {
         this.email = email;
         this.password = password;
         this.name = name;
-        this.phone = phone;
-        this.address = address;
     }
 
     public RegisterRequest() {
@@ -53,19 +48,4 @@ public class RegisterRequest {
         this.name = name;
     }
 
-    public String getPhone() {
-        return phone;
-    }
-
-    public void setPhone(String phone) {
-        this.phone = phone;
-    }
-
-    public String getAddress() {
-        return address;
-    }
-
-    public void setAddress(String address) {
-        this.address = address;
-    }
 }
