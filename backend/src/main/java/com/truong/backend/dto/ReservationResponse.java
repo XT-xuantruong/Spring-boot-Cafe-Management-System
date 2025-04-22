@@ -1,5 +1,7 @@
 package com.truong.backend.dto;
 
+import com.truong.backend.entity.OrderStatus;
+import com.truong.backend.entity.PaymentStatus;
 import com.truong.backend.entity.ReservationStatus;
 import lombok.Getter;
 import lombok.Setter;
@@ -14,11 +16,14 @@ public class ReservationResponse {
     private ReservationStatus status;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private OrderDTO order; // Thêm trường để chứa thông tin đơn hàng
 
     public ReservationResponse() {
     }
 
-    public ReservationResponse(Long reservationId, UserDTO user, CafeTableDTO cafeTable, LocalDateTime reservationTime, ReservationStatus status, LocalDateTime createdAt, LocalDateTime updatedAt) {
+    public ReservationResponse(Long reservationId, UserDTO user, CafeTableDTO cafeTable,
+                               LocalDateTime reservationTime, ReservationStatus status,
+                               LocalDateTime createdAt, LocalDateTime updatedAt, OrderDTO order) {
         this.reservationId = reservationId;
         this.user = user;
         this.cafeTable = cafeTable;
@@ -26,6 +31,7 @@ public class ReservationResponse {
         this.status = status;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
+        this.order = order;
     }
 
     public Long getReservationId() {
@@ -82,6 +88,14 @@ public class ReservationResponse {
 
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public OrderDTO getOrder() {
+        return order;
+    }
+
+    public void setOrder(OrderDTO order) {
+        this.order = order;
     }
 
     public static class UserDTO {
@@ -143,7 +157,6 @@ public class ReservationResponse {
         }
     }
 
-
     public static class CafeTableDTO {
         private Long tableId;
         private String tableNumber;
@@ -190,6 +203,55 @@ public class ReservationResponse {
 
         public void setStatus(String status) {
             this.status = status;
+        }
+    }
+
+    public static class OrderDTO {
+        private Long orderId;
+        private Double totalAmount;
+        private OrderStatus orderStatus;
+        private PaymentStatus paymentStatus;
+
+        public OrderDTO() {
+        }
+
+        public OrderDTO(Long orderId, Double totalAmount, OrderStatus orderStatus, PaymentStatus paymentStatus) {
+            this.orderId = orderId;
+            this.totalAmount = totalAmount;
+            this.orderStatus = orderStatus;
+            this.paymentStatus = paymentStatus;
+        }
+
+        public Long getOrderId() {
+            return orderId;
+        }
+
+        public void setOrderId(Long orderId) {
+            this.orderId = orderId;
+        }
+
+        public Double getTotalAmount() {
+            return totalAmount;
+        }
+
+        public void setTotalAmount(Double totalAmount) {
+            this.totalAmount = totalAmount;
+        }
+
+        public OrderStatus getOrderStatus() {
+            return orderStatus;
+        }
+
+        public void setOrderStatus(OrderStatus orderStatus) {
+            this.orderStatus = orderStatus;
+        }
+
+        public PaymentStatus getPaymentStatus() {
+            return paymentStatus;
+        }
+
+        public void setPaymentStatus(PaymentStatus paymentStatus) {
+            this.paymentStatus = paymentStatus;
         }
     }
 }
