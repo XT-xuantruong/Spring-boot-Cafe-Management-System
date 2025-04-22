@@ -77,4 +77,13 @@ public class CafeTableService {
     public List<CafeTable> getTablesByStatus(TableStatus status) {
         return cafeTableRepository.findByStatus(status);
     }
+
+    public CafeTable updateTableStatus(Long id, TableStatus request) {
+        CafeTable table = cafeTableRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Table not found with ID: " + id));
+        if (request != null) {
+            table.setStatus(request);
+        }
+        return cafeTableRepository.save(table);
+    }
 }

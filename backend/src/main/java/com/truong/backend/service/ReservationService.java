@@ -1,11 +1,7 @@
 package com.truong.backend.service;
 
 import com.truong.backend.dto.ReservationResponse;
-import com.truong.backend.entity.CafeTable;
-import com.truong.backend.entity.Order;
-import com.truong.backend.entity.Reservation;
-import com.truong.backend.entity.ReservationStatus;
-import com.truong.backend.entity.User;
+import com.truong.backend.entity.*;
 import com.truong.backend.repository.CafeTableRepository;
 import com.truong.backend.repository.OrderRepository;
 import com.truong.backend.repository.ReservationRepository;
@@ -29,6 +25,9 @@ public class ReservationService {
 
     @Autowired
     private CafeTableRepository cafeTableRepository;
+
+    @Autowired
+    private CafeTableService cafeTableService;
 
     @Autowired
     private OrderRepository orderRepository;
@@ -56,6 +55,8 @@ public class ReservationService {
         reservation.setCafeTable(table);
         reservation.setReservationTime(reservationTime);
         reservation.setStatus(ReservationStatus.PENDING);
+
+        cafeTableService.updateTableStatus(table.getTableId(), TableStatus.RESERVED);
         return mapToResponseDTO(reservationRepository.save(reservation));
     }
 
@@ -82,6 +83,9 @@ public class ReservationService {
         Reservation reservation = reservationRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Reservation not found with ID: " + id));
         reservation.setStatus(status);
+        if (reservation.getStatus().equals(ReservationStatus.CANCELLED)) {
+            cafeTableService.updateTableStatus(reservation.getCafeTable().getTableId(), TableStatus.AVAILABLE);
+        }
         return mapToResponseDTO(reservationRepository.save(reservation));
     }
 
@@ -94,6 +98,7 @@ public class ReservationService {
             order.setReservation(null);
             orderRepository.save(order);
         });
+        cafeTableService.updateTableStatus(reservation.getCafeTable().getTableId(), TableStatus.AVAILABLE);
         reservationRepository.save(reservation);
     }
 
