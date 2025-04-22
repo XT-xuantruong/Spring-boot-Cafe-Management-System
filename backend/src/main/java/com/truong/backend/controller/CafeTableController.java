@@ -1,5 +1,6 @@
 package com.truong.backend.controller;
 
+import com.truong.backend.dto.ApiResponse;
 import com.truong.backend.dto.CafeTableRequest;
 import com.truong.backend.entity.CafeTable;
 import com.truong.backend.entity.TableStatus;
@@ -21,33 +22,44 @@ public class CafeTableController {
     // Lấy danh sách bàn (Admin, Staff)
     @GetMapping
     @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_STAFF')")
-    public ResponseEntity<List<CafeTable>> getAllTables() {
-        return ResponseEntity.ok(cafeTableService.getAllTables());
+    public ResponseEntity<ApiResponse<List<CafeTable>>> getAllTables() {
+        List<CafeTable> cafeTables = cafeTableService.getAllTables();
+        return ResponseEntity.ok(new ApiResponse<>(
+                "success", "Get table successful", cafeTables
+        ));
     }
 
     // Lấy bàn theo ID (Admin, Staff)
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_STAFF')")
-    public ResponseEntity<CafeTable> getTableById(@PathVariable Long id) {
-        return ResponseEntity.ok(cafeTableService.getTableById(id));
+    public ResponseEntity<ApiResponse<CafeTable>> getTableById(@PathVariable Long id) {
+        CafeTable cafeTable = cafeTableService.getTableById(id);
+        return ResponseEntity.ok(
+                new ApiResponse<>("success", "Get table successful", cafeTable)
+        );
     }
 
     // Tạo bàn mới (Admin)
     @PostMapping
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public ResponseEntity<CafeTable> createTable(@RequestBody CafeTableRequest request) {
+    public ResponseEntity<ApiResponse<CafeTable>> createTable(@RequestBody CafeTableRequest request) {
+        CafeTable cafeTable= cafeTableService.createTable(request);
+
         return ResponseEntity.ok(
-                cafeTableService.createTable(request.getTableNumber(), request.getCapacity())
+                new ApiResponse<>("success", "Create table successful", cafeTable)
         );
     }
     // Cập nhật thông tin bàn (Admin)
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public ResponseEntity<CafeTable> updateTable(
+    public ResponseEntity<ApiResponse<CafeTable>> updateTable(
             @PathVariable Long id,
-            @RequestBody CafeTableRequest request) {
+            @RequestBody CafeTableRequest request
+    ) {
+
+        CafeTable cafeTable = cafeTableService.updateTable(id, request);
         return ResponseEntity.ok(
-                cafeTableService.updateTable(id, request.getTableNumber(), request.getCapacity(), request.getStatus())
+               new ApiResponse<>("success", "Update table successful", cafeTable)
         );
     }
 
@@ -55,8 +67,10 @@ public class CafeTableController {
     // Xóa bàn (Admin)
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public ResponseEntity<String> deleteTable(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<String>> deleteTable(@PathVariable Long id) {
         cafeTableService.deleteTable(id);
-        return ResponseEntity.ok("Table deleted");
+        return ResponseEntity.ok(
+                new ApiResponse<>("success", "Table deleted",null)
+        );
     }
 }
