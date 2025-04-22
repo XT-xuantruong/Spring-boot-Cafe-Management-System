@@ -20,12 +20,8 @@ public class MenuItem {
     @Column(nullable = false)
     private Double price;
 
-    private String category;
 
     private String imageUrl;
-
-    @Column(nullable = false)
-    private Boolean isAvailable = true;
 
     @CreationTimestamp
     private LocalDateTime createdAt;
@@ -36,14 +32,12 @@ public class MenuItem {
     public MenuItem() {
     }
 
-    public MenuItem(Long itemId, String itemName, String description, Double price, String category, String imageUrl, Boolean isAvailable, LocalDateTime createdAt, LocalDateTime updatedAt) {
+    public MenuItem(Long itemId, String itemName, String description, Double price, String imageUrl, LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.itemId = itemId;
         this.itemName = itemName;
         this.description = description;
         this.price = price;
-        this.category = category;
         this.imageUrl = imageUrl;
-        this.isAvailable = isAvailable;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
     }
@@ -80,13 +74,6 @@ public class MenuItem {
         this.price = price;
     }
 
-    public String getCategory() {
-        return category;
-    }
-
-    public void setCategory(String category) {
-        this.category = category;
-    }
 
     public String getImageUrl() {
         return imageUrl;
@@ -96,13 +83,7 @@ public class MenuItem {
         this.imageUrl = imageUrl;
     }
 
-    public Boolean getAvailable() {
-        return isAvailable;
-    }
 
-    public void setAvailable(Boolean available) {
-        isAvailable = available;
-    }
 
     public LocalDateTime getCreatedAt() {
         return createdAt;

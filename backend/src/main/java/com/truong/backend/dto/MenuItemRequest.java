@@ -13,22 +13,14 @@ public class MenuItemRequest {
     @Positive(message = "Giá phải lớn hơn 0")
     private Double price;
 
-    private String category;
-
-    private Boolean isAvailable;
-
-    private String imageUrl;
 
     public MenuItemRequest() {
     }
 
-    public MenuItemRequest(String itemName, String description, Double price, String category, Boolean isAvailable, String imageUrl) {
+    public MenuItemRequest(String itemName, String description, Double price) {
         this.itemName = itemName;
         this.description = description;
         this.price = price;
-        this.category = category;
-        this.isAvailable = isAvailable;
-        this.imageUrl = imageUrl;
     }
 
     public String getItemName() {
@@ -55,27 +47,4 @@ public class MenuItemRequest {
         this.price = price;
     }
 
-    public String getCategory() {
-        return category;
-    }
-
-    public void setCategory(String category) {
-        this.category = category;
-    }
-
-    public Boolean getAvailable() {
-        return isAvailable;
-    }
-
-    public void setAvailable(Boolean available) {
-        isAvailable = available;
-    }
-
-    public String getImageUrl() {
-        return imageUrl;
-    }
-
-    public void setImageUrl(String imageUrl) {
-        this.imageUrl = imageUrl;
-    }
 }
