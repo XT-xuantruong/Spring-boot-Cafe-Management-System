@@ -4,19 +4,32 @@ import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 
-@Setter
-@Getter
 @Data
 public class AuthResponse {
-    private String access_token;
-    private String refresh_token;
+    private String accessToken;
+    private String refreshToken;
 
     public AuthResponse() {
     }
 
-    public AuthResponse(String access_token, String refresh_token) {
-        this.access_token = access_token;
-        this.refresh_token = refresh_token;
+    public AuthResponse(String accessToken, String refreshToken) {
+        this.accessToken = accessToken;
+        this.refreshToken = refreshToken;
     }
 
+    public String getAccessToken() {
+        return accessToken;
+    }
+
+    public void setAccessToken(String accessToken) {
+        this.accessToken = accessToken;
+    }
+
+    public String getRefreshToken() {
+        return refreshToken;
+    }
+
+    public void setRefreshToken(String refreshtoken) {
+        this.refreshToken = refreshToken;
+    }
 }

@@ -7,7 +7,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
 import java.util.List;
 
 @Service
@@ -20,18 +19,21 @@ public class MenuItemService {
     private CloudinaryService cloudinaryService;
 
     // Tạo món mới (Admin)
-    public MenuItem createMenuItem(MenuItemRequest menuItemRequest) {
+    public MenuItem createMenuItem(MenuItemRequest menuItemRequest, MultipartFile image) {
         if (menuItemRepository.existsByItemName(menuItemRequest.getItemName())) {
             throw new IllegalArgumentException("Món ăn với tên '" + menuItemRequest.getItemName() + "' đã tồn tại");
         }
-        MenuItem menuItem = MenuItem.builder()
-                .itemName(menuItemRequest.getItemName())
-                .description(menuItemRequest.getDescription())
-                .price(menuItemRequest.getPrice())
-                .category(menuItemRequest.getCategory())
-                .imageUrl(menuItemRequest.getImageUrl()) // Sử dụng imageUrl từ request
-                .isAvailable(menuItemRequest.getIsAvailable() != null ? menuItemRequest.getIsAvailable() : true)
-                .build();
+        MenuItem menuItem = new MenuItem();
+        menuItem.setItemName(menuItemRequest.getItemName());
+        menuItem.setDescription(menuItemRequest.getDescription());
+        menuItem.setPrice(menuItemRequest.getPrice());
+
+        // Xử lý upload ảnh nếu có
+        if (image != null && !image.isEmpty()) {
+            String imageUrl = cloudinaryService.uploadImage(image,"menu");
+            menuItem.setImageUrl(imageUrl);
+        }
+
         return menuItemRepository.save(menuItem);
     }
 
@@ -47,7 +49,7 @@ public class MenuItemService {
     }
 
     // Cập nhật món (Admin)
-    public MenuItem updateMenuItem(Long id, MenuItemRequest menuItemRequest) {
+    public MenuItem updateMenuItem(Long id, MenuItemRequest menuItemRequest, MultipartFile image) {
         MenuItem menuItem = menuItemRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Menu item not found with ID: " + id));
 
@@ -60,14 +62,11 @@ public class MenuItemService {
         if (menuItemRequest.getPrice() != null) {
             menuItem.setPrice(menuItemRequest.getPrice());
         }
-        if (menuItemRequest.getCategory() != null) {
-            menuItem.setCategory(menuItemRequest.getCategory());
-        }
-        if (menuItemRequest.getIsAvailable() != null) {
-            menuItem.setIsAvailable(menuItemRequest.getIsAvailable());
-        }
-        if (menuItemRequest.getImageUrl() != null) {
-            menuItem.setImageUrl(menuItemRequest.getImageUrl()); // Cập nhật imageUrl
+
+        // Xử lý upload ảnh nếu có
+        if (image != null && !image.isEmpty()) {
+            String imageUrl = cloudinaryService.uploadImage(image, "menu");
+            menuItem.setImageUrl(imageUrl);
         }
 
         return menuItemRepository.save(menuItem);
@@ -81,8 +80,4 @@ public class MenuItemService {
         menuItemRepository.deleteById(id);
     }
 
-    // Lấy món theo danh mục (Tất cả vai trò)
-    public List<MenuItem> getMenuItemsByCategory(String category) {
-        return menuItemRepository.findByCategory(category);
-    }
 }

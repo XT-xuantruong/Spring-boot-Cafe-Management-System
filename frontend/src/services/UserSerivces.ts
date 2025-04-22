@@ -10,7 +10,7 @@ export const userServices = baseRestApi.injectEndpoints({
   endpoints: (builder) => ({
     getMe: builder.query<{ data: User; message: string }, void>({
       query: () => ({
-        url: `${entity}/me`,
+        url: `${entity}/profile`,
         method: "GET",
       }),
       transformResponse: (response: ApiResponse<User>) => ({
@@ -44,7 +44,7 @@ export const userServices = baseRestApi.injectEndpoints({
         });
 
         return {
-          url: `${entity}/me`,
+          url: `${entity}/profile`,
           method: "PUT",
           body: formData,
         };

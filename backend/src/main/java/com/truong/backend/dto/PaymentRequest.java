@@ -4,11 +4,7 @@ import com.truong.backend.entity.PaymentMethod;
 import com.truong.backend.entity.PaymentStatus;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
-import lombok.Getter;
-import lombok.Setter;
 
-@Setter
-@Getter
 public class PaymentRequest {
     @NotNull(message = "ID đơn hàng là bắt buộc")
     private Long orderId;
@@ -24,4 +20,54 @@ public class PaymentRequest {
     private String transactionId;
 
     private PaymentStatus paymentStatus; // Dùng cho PUT
+
+    public PaymentRequest() {}
+
+    public PaymentRequest(Long orderId, Double amount, PaymentMethod paymentMethod, String transactionId, PaymentStatus paymentStatus) {
+        this.orderId = orderId;
+        this.amount = amount;
+        this.paymentMethod = paymentMethod;
+        this.transactionId = transactionId;
+        this.paymentStatus = paymentStatus;
+    }
+
+    public Long getOrderId() {
+        return orderId;
+    }
+
+    public void setOrderId(Long orderId) {
+        this.orderId = orderId;
+    }
+
+    public Double getAmount() {
+        return amount;
+    }
+
+    public void setAmount(Double amount) {
+        this.amount = amount;
+    }
+
+    public PaymentMethod getPaymentMethod() {
+        return paymentMethod;
+    }
+
+    public void setPaymentMethod(PaymentMethod paymentMethod) {
+        this.paymentMethod = paymentMethod;
+    }
+
+    public String getTransactionId() {
+        return transactionId;
+    }
+
+    public void setTransactionId(String transactionId) {
+        this.transactionId = transactionId;
+    }
+
+    public PaymentStatus getPaymentStatus() {
+        return paymentStatus;
+    }
+
+    public void setPaymentStatus(PaymentStatus paymentStatus) {
+        this.paymentStatus = paymentStatus;
+    }
 }

@@ -43,7 +43,7 @@ const iconVariants = {
 
 export default function NotFoundPage() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-100">
+    <div className="flex min-h-screen items-center justify-center w-full bg-gray-100">
       <motion.div
         className="text-center space-y-6 p-6 max-w-md w-full"
         variants={containerVariants}
