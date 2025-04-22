@@ -6,6 +6,7 @@ import com.truong.backend.entity.*;
 import com.truong.backend.repository.CafeTableRepository;
 import com.truong.backend.repository.OrderItemRepository;
 import com.truong.backend.repository.OrderRepository;
+import com.truong.backend.repository.ReservationRepository;
 import com.truong.backend.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -31,16 +32,34 @@ public class OrderService {
     @Autowired
     private MenuItemService menuItemService;
 
+    @Autowired
+    private ReservationRepository reservationRepository;
+
     // Tạo đơn hàng mới (Admin, Staff, Customer)
-    public OrderResponse createOrder(Long userId, Long tableId, List<OrderItemRequest> items) {
+    public OrderResponse createOrder(Long userId, Long tableId, Long reservationId, List<OrderItemRequest> items) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found with ID: " + userId));
         CafeTable table = cafeTableRepository.findById(tableId)
                 .orElseThrow(() -> new IllegalArgumentException("Table not found with ID: " + tableId));
 
+        Reservation reservation = null;
+        if (reservationId != null) {
+            reservation = reservationRepository.findById(reservationId)
+                    .orElseThrow(() -> new IllegalArgumentException("Reservation not found with ID: " + reservationId));
+            // Kiểm tra reservation có thuộc về user và table không
+            if (!reservation.getUser().getId().equals(userId) || !reservation.getCafeTable().getTableId().equals(tableId)) {
+                throw new IllegalArgumentException("Reservation does not match user or table");
+            }
+            // Kiểm tra trạng thái reservation
+            if (reservation.getStatus() == ReservationStatus.CANCELLED) {
+                throw new IllegalArgumentException("Cannot create order for a cancelled reservation");
+            }
+        }
+
         Order order = new Order();
         order.setUser(user);
         order.setTable(table);
+        order.setReservation(reservation);
         order.setOrderStatus(OrderStatus.PENDING);
         order.setPaymentStatus(PaymentStatus.UNPAID);
 
@@ -91,7 +110,7 @@ public class OrderService {
                 .orElseThrow(() -> new IllegalArgumentException("Order not found with ID: " + id));
         order.setOrderStatus(status);
         Order updatedOrder = orderRepository.save(order);
-        return mapToOrderResponse(updatedOrder);
+        return mapToOrderResponse(order);
     }
 
     // Hủy đơn hàng (Admin, Staff)
@@ -100,6 +119,12 @@ public class OrderService {
                 .orElseThrow(() -> new IllegalArgumentException("Order not found with ID: " + id));
         order.setOrderStatus(OrderStatus.CANCELLED);
         order.setPaymentStatus(PaymentStatus.CANCELLED);
+        // Nếu đơn hàng liên quan đến reservation, có thể cập nhật trạng thái reservation (tuỳ nghiệp vụ)
+        if (order.getReservation() != null) {
+            Reservation reservation = order.getReservation();
+            reservation.setStatus(ReservationStatus.CANCELLED); // Ví dụ: hủy cả reservation
+            reservationRepository.save(reservation);
+        }
         orderRepository.save(order);
     }
 
@@ -109,6 +134,7 @@ public class OrderService {
         response.setOrderId(order.getOrderId());
         response.setUserId(order.getUser().getId());
         response.setTableId(order.getTable().getTableId());
+        response.setReservationId(order.getReservation() != null ? order.getReservation().getReservationId() : null);
         response.setOrderStatus(order.getOrderStatus());
         response.setPaymentStatus(order.getPaymentStatus());
         response.setTotalAmount(order.getTotalAmount());
@@ -128,6 +154,15 @@ public class OrderService {
                 })
                 .collect(Collectors.toList());
         response.setOrderItems(itemResponses);
+
+        // Thêm thông tin reservation nếu có
+        if (order.getReservation() != null) {
+            OrderResponse.ReservationResponse reservationResponse = new OrderResponse.ReservationResponse();
+            reservationResponse.setReservationId(order.getReservation().getReservationId());
+            reservationResponse.setReservationTime(order.getReservation().getReservationTime());
+            reservationResponse.setStatus(order.getReservation().getStatus());
+            response.setReservation(reservationResponse);
+        }
 
         return response;
     }

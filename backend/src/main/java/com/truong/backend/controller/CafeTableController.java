@@ -20,13 +20,18 @@ public class CafeTableController {
     private CafeTableService cafeTableService;
 
     // Lấy danh sách bàn (Admin, Staff)
-    @GetMapping
+    @GetMapping()
     @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_STAFF')")
-    public ResponseEntity<ApiResponse<List<CafeTable>>> getAllTables() {
-        List<CafeTable> cafeTables = cafeTableService.getAllTables();
-        return ResponseEntity.ok(new ApiResponse<>(
-                "success", "Get table successful", cafeTables
-        ));
+    public ResponseEntity<ApiResponse<List<CafeTable>>> getTablesByStatus(@RequestParam(required = false) TableStatus status) {
+        if (status != null) {
+            List<CafeTable> cafeTable = cafeTableService.getTablesByStatus(status);
+            return ResponseEntity.ok(
+                    new ApiResponse<>("success","Get success", cafeTable)
+            );
+        }
+        return ResponseEntity.ok(
+                new ApiResponse<>("success","Get success", cafeTableService.getAllTables())
+        );
     }
 
     // Lấy bàn theo ID (Admin, Staff)

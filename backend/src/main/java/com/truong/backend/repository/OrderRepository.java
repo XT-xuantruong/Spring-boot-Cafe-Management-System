@@ -24,4 +24,7 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     // Lấy danh sách đơn hàng trong khoảng thời gian (dùng cho báo cáo Admin)
     @Query("SELECT o FROM Order o WHERE o.createdAt BETWEEN :startDate AND :endDate")
     List<Order> findByCreatedAtBetween(LocalDateTime startDate, LocalDateTime endDate);
+
+    // Lấy danh sách đơn hàng theo reservation_id
+    List<Order> findByReservationReservationId(Long reservationId);
 }

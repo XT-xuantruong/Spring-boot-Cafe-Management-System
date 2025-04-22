@@ -12,7 +12,6 @@ import {
   RatioIcon,
   SearchIcon,
   SettingsIcon,
-  SquareIcon,
   SquareMenuIcon,
   UsersIcon,
 } from "lucide-react"
@@ -52,7 +51,7 @@ const data = {
     },
     {
       title: "Reversation",
-      url: "#",
+      url: "/admin/reservation",
       icon: BarChartIcon,
     },
     {
