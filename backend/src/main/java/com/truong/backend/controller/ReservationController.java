@@ -1,5 +1,6 @@
 package com.truong.backend.controller;
 
+import com.truong.backend.dto.ApiResponse;
 import com.truong.backend.dto.ReservationRequest;
 import com.truong.backend.dto.ReservationResponse;
 import com.truong.backend.dto.UpdateStatusRequest;
@@ -8,6 +9,7 @@ import com.truong.backend.service.ReservationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -19,52 +21,67 @@ public class ReservationController {
     @Autowired
     private ReservationService reservationService;
 
-    // Lấy danh sách đặt bàn (Admin, Staff)
     @GetMapping
     @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_STAFF')")
-    public ResponseEntity<List<ReservationResponse>> getAllReservations() {
-        return ResponseEntity.ok(reservationService.getAllReservations());
+    public ResponseEntity<ApiResponse<List<ReservationResponse>>> getAllReservations() {
+        List<ReservationResponse> reservations = reservationService.getAllReservations();
+        return ResponseEntity.ok(
+                new ApiResponse<>("success", "getAllReservations", reservations)
+        );
     }
 
-    // Lấy đặt bàn theo ID (Admin, Staff)
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_STAFF')")
-    public ResponseEntity<ReservationResponse> getReservationById(@PathVariable Long id) {
-        return ResponseEntity.ok(reservationService.getReservationById(id));
+    public ResponseEntity<ApiResponse<ReservationResponse>> getReservationById(@PathVariable Long id) {
+        ReservationResponse reservation = reservationService.getReservationById(id);
+        return ResponseEntity.ok(
+                new ApiResponse<>("success", "getReservationById", reservation)
+        );
     }
 
-    // Lấy danh sách đặt bàn của khách hàng (Customer)
     @GetMapping("/customer")
     @PreAuthorize("hasRole('ROLE_CUSTOMER')")
-    public ResponseEntity<List<ReservationResponse>> getReservationsByUser(@RequestParam Long userId) {
-        return ResponseEntity.ok(reservationService.getReservationsByUser(userId));
+    public ResponseEntity<ApiResponse<List<ReservationResponse>>> getReservationsByUser(@RequestParam Long userId) {
+        List<ReservationResponse> reservations = reservationService.getReservationsByUser(userId);
+        return ResponseEntity.ok(
+                new ApiResponse<>("success", "getReservationsByUser", reservations)
+        );
     }
 
-    // Tạo đặt bàn mới (Admin, Staff, Customer)
     @PostMapping
     @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_STAFF', 'ROLE_CUSTOMER')")
-    public ResponseEntity<ReservationResponse> createReservation(@RequestBody ReservationRequest request) {
-        return ResponseEntity.ok(reservationService.createReservation(
-                request.getUserId(),
+    public ResponseEntity<ApiResponse<ReservationResponse>> createReservation(
+            @RequestBody ReservationRequest request,
+            Authentication authentication)
+    {
+        ReservationResponse reservationResponse =reservationService.createReservation(
+                authentication,
                 request.getTableId(),
                 request.getReservationTime()
-        ));
+        );
+        return ResponseEntity.ok(
+                new ApiResponse<>("success", "createReservation", reservationResponse)
+        );
     }
 
-    // Cập nhật trạng thái đặt bàn (Admin, Staff)
     @PutMapping("/{id}")
     @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_STAFF')")
-    public ResponseEntity<ReservationResponse> updateReservationStatus(
+    public ResponseEntity<ApiResponse<ReservationResponse>> updateReservationStatus(
             @PathVariable Long id,
-            @RequestBody UpdateStatusRequest request) {
-        return ResponseEntity.ok(reservationService.updateReservationStatus(id, request.getStatus()));
+            @RequestBody UpdateStatusRequest request)
+    {
+        ReservationResponse reservationResponse =reservationService.updateReservationStatus(id, request.getStatus());
+        return ResponseEntity.ok(
+                new ApiResponse<>("success", "updateReservationStatus", reservationResponse)
+        );
     }
 
-    // Hủy đặt bàn (Admin, Staff, Customer)
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_STAFF', 'ROLE_CUSTOMER')")
-    public ResponseEntity<String> cancelReservation(@PathVariable Long id) {
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_STAFF')")
+    public ResponseEntity<ApiResponse<String>> cancelReservation(@PathVariable Long id) {
         reservationService.cancelReservation(id);
-        return ResponseEntity.ok("Reservation cancelled");
+        return ResponseEntity.ok(
+                new ApiResponse<>("success", "cancelReservation", null)
+        );
     }
 }
