@@ -63,6 +63,6 @@ public class JwtRequestFilter extends OncePerRequestFilter {
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String path = request.getRequestURI();
-        return path.startsWith("/h2-console");
+        return path.startsWith("/api/auth");
     }
 }
