@@ -29,6 +29,9 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
 import { NavMainCustom } from "./nav-main-custom"
+import { RootState } from "@/stores"
+import { User } from "@/interfaces/user"
+import { useSelector } from "react-redux"
 
 const data = {
   user: {
@@ -58,13 +61,18 @@ const data = {
       icon: SquareMenuIcon,
     },
     {
+      title: "Order",
+      url: "/admin/order",
+      icon: SquareMenuIcon,
+    },
+    {
       title: "Payment",
-      url: "#",
-      icon: SquareIcon,
+      url: "/admin/payment",
+      icon: SquareMenuIcon,
     },
     {
       title: "Users",
-      url: "#",
+      url: "/admin/user",
       icon: UsersIcon,
     },
   ],
@@ -153,6 +161,12 @@ const data = {
 }
 
 export function AppSidebarCustom({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const user = useSelector((state: RootState) => state.auth.user as User | null);
+  const info = {
+    name: user?.name || "Guest",
+    email: user?.email || "guest@example.com",
+    avatar: user?.avatar_url || "/avatars/default.jpg",
+  };
   return (
     <Sidebar collapsible="offcanvas" {...props}>
       <SidebarHeader>
@@ -169,7 +183,7 @@ export function AppSidebarCustom({ ...props }: React.ComponentProps<typeof Sideb
         <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <NavUser user={info} />
       </SidebarFooter>
     </Sidebar>
   )

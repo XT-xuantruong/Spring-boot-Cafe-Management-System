@@ -1,9 +1,6 @@
 package com.truong.backend.controller;
 
-import com.truong.backend.dto.ApiResponse;
-import com.truong.backend.dto.UpdateProfileRequest;
-import com.truong.backend.dto.UpdateUserRequest;
-import com.truong.backend.dto.UserResponse;
+import com.truong.backend.dto.*;
 import com.truong.backend.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -45,6 +42,11 @@ public class UserController {
     public ResponseEntity<ApiResponse<UserResponse>> getUserById(@PathVariable Long id) {
         UserResponse userResponse = userService.getUserById(id);
         return ResponseEntity.ok(new ApiResponse<>("success", "User retrieved successfully", userResponse));
+    }
+    @PostMapping("")
+    public ResponseEntity<ApiResponse<UserResponse>> register(@Valid @RequestBody UserRequest userRequest) {
+        UserResponse newUser = userService.createUser(userRequest);
+        return ResponseEntity.ok(new ApiResponse<>("success", "User registered successfully", newUser));
     }
 
     @PutMapping()

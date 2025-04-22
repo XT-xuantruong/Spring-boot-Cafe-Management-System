@@ -21,3 +21,13 @@ export interface UserUpdate {
   address?: string;
   role?: string;
 }
+
+export interface UserRequest {
+  id?: number;
+  email?: string;
+  name?: string;
+  phone?: string;
+  password?: string;
+  address?: string;
+  role?: string;
+}
