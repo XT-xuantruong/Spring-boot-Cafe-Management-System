@@ -1,8 +1,5 @@
 package com.truong.backend.controller;
 
-import com.truong.backend.dto.PaymentRequest;
-import com.truong.backend.dto.UpdatePaymentRequest;
-import com.truong.backend.dto.PaymentResponse;
 import com.truong.backend.service.PaymentService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
