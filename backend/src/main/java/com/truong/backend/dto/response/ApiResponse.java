@@ -1,4 +1,4 @@
-package com.truong.backend.dto;
+package com.truong.backend.dto.response;
 
 import lombok.Data;
 

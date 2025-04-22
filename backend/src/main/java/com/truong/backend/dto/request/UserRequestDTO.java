@@ -1,25 +1,39 @@
-package com.truong.backend.dto;
+package com.truong.backend.dto.request;
 
 import com.truong.backend.entity.Role;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
 
-public class UserRequest {
+public class UserRequestDTO {
     @NotBlank(message = "Email is required")
     @Email(message = "Invalid email format")
     private String email;
 
     @NotBlank(message = "Password is required")
-    @Size(min = 6, message = "Password must be at least 6 characters")
     private String password;
 
     @NotBlank(message = "Name is required")
     private String name;
 
     private String phone;
+
     private String address;
+
     private Role role;
+
+    // Constructors
+    public UserRequestDTO() {
+    }
+
+    public UserRequestDTO(String email, String password, String name, String phone,
+                          String address, Role role) {
+        this.email = email;
+        this.password = password;
+        this.name = name;
+        this.phone = phone;
+        this.address = address;
+        this.role = role;
+    }
 
     // Getters and Setters
     public String getEmail() {

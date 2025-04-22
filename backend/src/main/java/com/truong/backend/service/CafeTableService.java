@@ -1,6 +1,6 @@
 package com.truong.backend.service;
 
-import com.truong.backend.dto.CafeTableRequest;
+import com.truong.backend.dto.request.CafeTableRequestDTO;
 import com.truong.backend.entity.CafeTable;
 import com.truong.backend.entity.TableStatus;
 import com.truong.backend.repository.CafeTableRepository;
@@ -15,19 +15,6 @@ public class CafeTableService {
     @Autowired
     private CafeTableRepository cafeTableRepository;
 
-    // Tạo bàn mới (Admin)
-    public CafeTable createTable(CafeTableRequest request) {
-        if (cafeTableRepository.findByTableNumber(request.getTableNumber()).isPresent()) {
-            throw new IllegalArgumentException("Table number already exists: " + request.getTableNumber());
-        }
-
-        CafeTable table = new CafeTable();
-        table.setTableNumber(request.getTableNumber());
-        table.setCapacity(request.getCapacity());
-        table.setStatus(TableStatus.AVAILABLE);
-        return cafeTableRepository.save(table);
-    }
-
     // Lấy danh sách bàn (Admin, Staff)
     public List<CafeTable> getAllTables() {
         return cafeTableRepository.findAll();
@@ -38,14 +25,34 @@ public class CafeTableService {
         return cafeTableRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Table not found with ID: " + id));
     }
+    // Tạo bàn mới (Admin)
+    public CafeTable createTable(
+            CafeTableRequestDTO request
+    ) {
+        if (
+            cafeTableRepository.findByTableNumber(request.getTableNumber()).isPresent()
+        ) {
+            throw new IllegalArgumentException("Table number already exists: " + request.getTableNumber());
+        }
+
+        CafeTable table = new CafeTable();
+        table.setTableNumber(request.getTableNumber());
+        table.setCapacity(request.getCapacity());
+        table.setStatus(TableStatus.AVAILABLE);
+        return cafeTableRepository.save(table);
+    }
 
     // Cập nhật thông tin bàn (Admin)
-    public CafeTable updateTable(Long id, CafeTableRequest request) {
+    public CafeTable updateTable(
+            Long id,
+            CafeTableRequestDTO request
+    ) {
         CafeTable table = cafeTableRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Table not found with ID: " + id));
-
         if (
-            request.getTableNumber() != null && !request.getTableNumber().equals(table.getTableNumber())) {
+            request.getTableNumber() != null &&
+            !request.getTableNumber().equals(table.getTableNumber())
+        ) {
             // Kiểm tra trùng số bàn nếu thay đổi
             if (cafeTableRepository.findByTableNumber(request.getTableNumber()).isPresent()) {
                 throw new IllegalArgumentException("Table number already exists: " + request.getTableNumber());
@@ -76,5 +83,14 @@ public class CafeTableService {
     // Lấy danh sách bàn theo trạng thái (Admin, Staff)
     public List<CafeTable> getTablesByStatus(TableStatus status) {
         return cafeTableRepository.findByStatus(status);
+    }
+
+    public CafeTable updateTableStatus(Long id, TableStatus request) {
+        CafeTable table = cafeTableRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Table not found with ID: " + id));
+        if (request != null) {
+            table.setStatus(request);
+        }
+        return cafeTableRepository.save(table);
     }
 }

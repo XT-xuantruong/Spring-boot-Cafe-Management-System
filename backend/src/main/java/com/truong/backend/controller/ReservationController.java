@@ -1,10 +1,8 @@
 package com.truong.backend.controller;
 
-import com.truong.backend.dto.ApiResponse;
-import com.truong.backend.dto.ReservationRequest;
-import com.truong.backend.dto.ReservationResponse;
-import com.truong.backend.dto.UpdateStatusRequest;
-import com.truong.backend.entity.ReservationStatus;
+import com.truong.backend.dto.request.ReservationRequestDTO;
+import com.truong.backend.dto.response.ApiResponse;
+import com.truong.backend.dto.response.ReservationResponseDTO;
 import com.truong.backend.service.ReservationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -23,8 +21,9 @@ public class ReservationController {
 
     @GetMapping
     @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_STAFF')")
-    public ResponseEntity<ApiResponse<List<ReservationResponse>>> getAllReservations() {
-        List<ReservationResponse> reservations = reservationService.getAllReservations();
+    public ResponseEntity<ApiResponse<List<ReservationResponseDTO>>> getAllReservations() {
+        List<ReservationResponseDTO> reservations =
+                reservationService.getAllReservations();
         return ResponseEntity.ok(
                 new ApiResponse<>("success", "getAllReservations", reservations)
         );
@@ -32,8 +31,10 @@ public class ReservationController {
 
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_STAFF')")
-    public ResponseEntity<ApiResponse<ReservationResponse>> getReservationById(@PathVariable Long id) {
-        ReservationResponse reservation = reservationService.getReservationById(id);
+    public ResponseEntity<ApiResponse<ReservationResponseDTO>> getReservationById(
+            @PathVariable Long id)
+    {
+        ReservationResponseDTO reservation = reservationService.getReservationById(id);
         return ResponseEntity.ok(
                 new ApiResponse<>("success", "getReservationById", reservation)
         );
@@ -41,8 +42,10 @@ public class ReservationController {
 
     @GetMapping("/customer")
     @PreAuthorize("hasRole('ROLE_CUSTOMER')")
-    public ResponseEntity<ApiResponse<List<ReservationResponse>>> getReservationsByUser(@RequestParam Long userId) {
-        List<ReservationResponse> reservations = reservationService.getReservationsByUser(userId);
+    public ResponseEntity<ApiResponse<List<ReservationResponseDTO>>> getReservationsByUser(
+            @RequestParam Long userId
+    ) {
+        List<ReservationResponseDTO> reservations = reservationService.getReservationsByUser(userId);
         return ResponseEntity.ok(
                 new ApiResponse<>("success", "getReservationsByUser", reservations)
         );
@@ -50,27 +53,32 @@ public class ReservationController {
 
     @PostMapping
     @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_STAFF', 'ROLE_CUSTOMER')")
-    public ResponseEntity<ApiResponse<ReservationResponse>> createReservation(
-            @RequestBody ReservationRequest request,
+    public ResponseEntity<ApiResponse<ReservationResponseDTO>> createReservation(
+            @RequestBody ReservationRequestDTO request,
             Authentication authentication)
     {
-        ReservationResponse reservationResponse =reservationService.createReservation(
+        ReservationResponseDTO reservationResponse =reservationService.createReservation(
                 authentication,
                 request.getTableId(),
                 request.getReservationTime()
         );
         return ResponseEntity.ok(
-                new ApiResponse<>("success", "createReservation", reservationResponse)
+                new ApiResponse<>(
+                        "success",
+                        "createReservation",
+                        reservationResponse
+                )
         );
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_STAFF')")
-    public ResponseEntity<ApiResponse<ReservationResponse>> updateReservationStatus(
+    public ResponseEntity<ApiResponse<ReservationResponseDTO>> updateReservationStatus(
             @PathVariable Long id,
-            @RequestBody UpdateStatusRequest request)
+            @RequestBody ReservationRequestDTO request)
     {
-        ReservationResponse reservationResponse =reservationService.updateReservationStatus(id, request.getStatus());
+        ReservationResponseDTO reservationResponse =
+                reservationService.updateReservationStatus(id, request.getStatus());
         return ResponseEntity.ok(
                 new ApiResponse<>("success", "updateReservationStatus", reservationResponse)
         );

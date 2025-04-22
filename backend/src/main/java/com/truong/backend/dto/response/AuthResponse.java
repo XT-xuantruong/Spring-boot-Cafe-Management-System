@@ -1,8 +1,6 @@
-package com.truong.backend.dto;
+package com.truong.backend.dto.response;
 
 import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
 
 @Data
 public class AuthResponse {

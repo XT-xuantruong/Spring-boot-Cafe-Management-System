@@ -1,11 +1,11 @@
-package com.truong.backend.dto;
+package com.truong.backend.dto.response;
 
 import com.truong.backend.entity.PaymentMethod;
 import com.truong.backend.entity.PaymentStatus;
 
 import java.time.LocalDateTime;
 
-public class PaymentResponse {
+public class PaymentResponseDTO {
     private Long paymentId;
     private Long orderId;
     private Double amount;
@@ -13,10 +13,16 @@ public class PaymentResponse {
     private PaymentStatus paymentStatus;
     private LocalDateTime paymentTime;
     private String transactionId;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 
-    public PaymentResponse() {}
+    // Constructors
+    public PaymentResponseDTO() {
+    }
 
-    public PaymentResponse(Long paymentId, Long orderId, Double amount, PaymentMethod paymentMethod, PaymentStatus paymentStatus, LocalDateTime paymentTime, String transactionId) {
+    public PaymentResponseDTO(Long paymentId, Long orderId, Double amount, PaymentMethod paymentMethod,
+                              PaymentStatus paymentStatus, LocalDateTime paymentTime, String transactionId,
+                              LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.paymentId = paymentId;
         this.orderId = orderId;
         this.amount = amount;
@@ -24,8 +30,11 @@ public class PaymentResponse {
         this.paymentStatus = paymentStatus;
         this.paymentTime = paymentTime;
         this.transactionId = transactionId;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
     }
 
+    // Getters and Setters
     public Long getPaymentId() {
         return paymentId;
     }
@@ -80,5 +89,21 @@ public class PaymentResponse {
 
     public void setTransactionId(String transactionId) {
         this.transactionId = transactionId;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
     }
 }

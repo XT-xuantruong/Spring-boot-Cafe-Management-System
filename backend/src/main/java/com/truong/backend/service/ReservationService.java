@@ -1,11 +1,8 @@
 package com.truong.backend.service;
 
-import com.truong.backend.dto.ReservationResponse;
-import com.truong.backend.entity.CafeTable;
-import com.truong.backend.entity.Order;
-import com.truong.backend.entity.Reservation;
-import com.truong.backend.entity.ReservationStatus;
-import com.truong.backend.entity.User;
+import com.truong.backend.dto.response.ReservationResponseDTO;
+import com.truong.backend.entity.*;
+import com.truong.backend.mapper.ReservationMapper;
 import com.truong.backend.repository.CafeTableRepository;
 import com.truong.backend.repository.OrderRepository;
 import com.truong.backend.repository.ReservationRepository;
@@ -33,8 +30,39 @@ public class ReservationService {
     @Autowired
     private OrderRepository orderRepository;
 
+    @Autowired
+    private CafeTableService cafeTableService;
+
+    @Autowired
+    private ReservationMapper reservationMapper;
+
+    // Lấy tất cả đặt bàn
+    public List<ReservationResponseDTO> getAllReservations() {
+        return reservationRepository.findAll().stream()
+                .map(reservationMapper::toResponseDTO)
+                .collect(Collectors.toList());
+    }
+
+    // Lấy đặt bàn theo ID
+    public ReservationResponseDTO getReservationById(Long id) {
+        Reservation reservation = reservationRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Reservation not found with ID: " + id));
+        return reservationMapper.toResponseDTO(reservation);
+    }
+
+    // Lấy danh sách đặt bàn của một người dùng
+    public List<ReservationResponseDTO> getReservationsByUser(Long userId) {
+        return reservationRepository.findByUserId(userId).stream()
+                .map(reservationMapper::toResponseDTO)
+                .collect(Collectors.toList());
+    }
+
     // Tạo đặt bàn mới (Admin, Staff, Customer)
-    public ReservationResponse createReservation(Authentication authentication, Long tableId, LocalDateTime reservationTime) {
+    public ReservationResponseDTO createReservation(
+            Authentication authentication,
+            Long tableId,
+            LocalDateTime reservationTime
+    ) {
         if (reservationTime == null) {
             throw new IllegalArgumentException("Reservation time must be provided");
         }
@@ -56,35 +84,26 @@ public class ReservationService {
         reservation.setCafeTable(table);
         reservation.setReservationTime(reservationTime);
         reservation.setStatus(ReservationStatus.PENDING);
-        return mapToResponseDTO(reservationRepository.save(reservation));
+
+        cafeTableService.updateTableStatus(table.getTableId(), TableStatus.RESERVED);
+        return reservationMapper.toResponseDTO(reservationRepository.save(reservation));
     }
 
-    // Các phương thức khác giữ nguyên
-    public List<ReservationResponse> getAllReservations() {
-        return reservationRepository.findAll().stream()
-                .map(this::mapToResponseDTO)
-                .collect(Collectors.toList());
-    }
-
-    public ReservationResponse getReservationById(Long id) {
-        Reservation reservation = reservationRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Reservation not found with ID: " + id));
-        return mapToResponseDTO(reservation);
-    }
-
-    public List<ReservationResponse> getReservationsByUser(Long userId) {
-        return reservationRepository.findByUserId(userId).stream()
-                .map(this::mapToResponseDTO)
-                .collect(Collectors.toList());
-    }
-
-    public ReservationResponse updateReservationStatus(Long id, ReservationStatus status) {
+    // Cập nhật trạng thái đặt bàn
+    public ReservationResponseDTO updateReservationStatus(
+            Long id,
+            ReservationStatus status
+    ) {
         Reservation reservation = reservationRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Reservation not found with ID: " + id));
         reservation.setStatus(status);
-        return mapToResponseDTO(reservationRepository.save(reservation));
+        if (reservation.getStatus().equals(ReservationStatus.CANCELLED)) {
+            cafeTableService.updateTableStatus(reservation.getCafeTable().getTableId(), TableStatus.AVAILABLE);
+        }
+        return reservationMapper.toResponseDTO(reservationRepository.save(reservation));
     }
 
+    // Hủy đặt bàn
     public void cancelReservation(Long id) {
         Reservation reservation = reservationRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Reservation not found with ID: " + id));
@@ -94,42 +113,10 @@ public class ReservationService {
             order.setReservation(null);
             orderRepository.save(order);
         });
+        cafeTableService.updateTableStatus(
+                reservation.getCafeTable().getTableId(),
+                TableStatus.AVAILABLE
+        );
         reservationRepository.save(reservation);
-    }
-
-    private ReservationResponse mapToResponseDTO(Reservation reservation) {
-        ReservationResponse dto = new ReservationResponse();
-        dto.setReservationId(reservation.getReservationId());
-        dto.setReservationTime(reservation.getReservationTime());
-        dto.setStatus(reservation.getStatus());
-        dto.setCreatedAt(reservation.getCreatedAt());
-        dto.setUpdatedAt(reservation.getUpdatedAt());
-
-        ReservationResponse.UserDTO userDTO = new ReservationResponse.UserDTO();
-        userDTO.setId(reservation.getUser().getId());
-        userDTO.setEmail(reservation.getUser().getEmail());
-        userDTO.setName(reservation.getUser().getName());
-        userDTO.setPhone(reservation.getUser().getPhone());
-        userDTO.setAddress(reservation.getUser().getAddress());
-        dto.setUser(userDTO);
-
-        ReservationResponse.CafeTableDTO tableDTO = new ReservationResponse.CafeTableDTO();
-        tableDTO.setTableId(reservation.getCafeTable().getTableId());
-        tableDTO.setTableNumber(reservation.getCafeTable().getTableNumber());
-        tableDTO.setCapacity(reservation.getCafeTable().getCapacity());
-        tableDTO.setStatus(String.valueOf(reservation.getCafeTable().getStatus()));
-        dto.setCafeTable(tableDTO);
-
-        List<Order> relatedOrders = orderRepository.findByReservationReservationId(reservation.getReservationId());
-        if (!relatedOrders.isEmpty()) {
-            ReservationResponse.OrderDTO orderDTO = new ReservationResponse.OrderDTO();
-            orderDTO.setOrderId(relatedOrders.get(0).getOrderId());
-            orderDTO.setTotalAmount(relatedOrders.get(0).getTotalAmount());
-            orderDTO.setOrderStatus(relatedOrders.get(0).getOrderStatus());
-            orderDTO.setPaymentStatus(relatedOrders.get(0).getPaymentStatus());
-            dto.setOrder(orderDTO);
-        }
-
-        return dto;
     }
 }

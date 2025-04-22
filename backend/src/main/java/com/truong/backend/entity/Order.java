@@ -34,10 +34,6 @@ public class Order {
     @Column(nullable = false)
     private OrderStatus orderStatus = OrderStatus.PENDING;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private PaymentStatus paymentStatus = PaymentStatus.UNPAID;
-
     @Column(nullable = false)
     private Double totalAmount = 0.0;
 
@@ -58,14 +54,13 @@ public class Order {
     }
 
     public Order(Long orderId, User user, CafeTable table, Reservation reservation, OrderStatus orderStatus,
-                 PaymentStatus paymentStatus, Double totalAmount, LocalDateTime createdAt, LocalDateTime updatedAt,
+  Double totalAmount, LocalDateTime createdAt, LocalDateTime updatedAt,
                  List<OrderItem> orderItems, Payment payment) {
         this.orderId = orderId;
         this.user = user;
         this.cafeTable = table;
         this.reservation = reservation;
         this.orderStatus = orderStatus;
-        this.paymentStatus = paymentStatus;
         this.totalAmount = totalAmount;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
@@ -120,14 +115,6 @@ public class Order {
 
     public void setTotalAmount(Double totalAmount) {
         this.totalAmount = totalAmount;
-    }
-
-    public PaymentStatus getPaymentStatus() {
-        return paymentStatus;
-    }
-
-    public void setPaymentStatus(PaymentStatus paymentStatus) {
-        this.paymentStatus = paymentStatus;
     }
 
     public OrderStatus getOrderStatus() {

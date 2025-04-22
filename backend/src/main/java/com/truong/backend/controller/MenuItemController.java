@@ -1,7 +1,8 @@
 package com.truong.backend.controller;
 
-import com.truong.backend.dto.ApiResponse;
-import com.truong.backend.dto.MenuItemRequest;
+import com.truong.backend.dto.request.MenuItemRequestDTO;
+import com.truong.backend.dto.response.ApiResponse;
+import com.truong.backend.dto.response.MenuItemResponseDTO;
 import com.truong.backend.entity.MenuItem;
 import com.truong.backend.service.MenuItemService;
 import jakarta.validation.Valid;
@@ -48,7 +49,9 @@ public class MenuItemController {
             @RequestPart(value = "image", required = false) MultipartFile image)
     {
 
-        MenuItemRequest request = new MenuItemRequest(itemName,description,Double.parseDouble(price));
+        MenuItemRequestDTO request = new MenuItemRequestDTO(
+                itemName,description,Double.parseDouble(price)
+        );
         MenuItem menuItem = menuItemService.createMenuItem(request, image);
         return ResponseEntity.ok(
                 new ApiResponse<>("success", "Create menu item", menuItem)
@@ -65,7 +68,9 @@ public class MenuItemController {
             @RequestPart("price") @Valid String price,
             @RequestPart(value = "image", required = false) MultipartFile image)
     {
-        MenuItemRequest request = new MenuItemRequest(itemName,description,Double.parseDouble(price));
+        MenuItemRequestDTO request = new MenuItemRequestDTO(
+                itemName,description,Double.parseDouble(price)
+        );
 
         MenuItem menuItem = menuItemService.updateMenuItem(id, request, image);
         return ResponseEntity.ok(

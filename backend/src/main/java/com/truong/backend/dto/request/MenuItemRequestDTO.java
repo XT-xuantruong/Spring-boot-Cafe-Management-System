@@ -1,28 +1,30 @@
-package com.truong.backend.dto;
+package com.truong.backend.dto.request;
 
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.PositiveOrZero;
 
-public class MenuItemRequest {
-    @NotNull(message = "Tên món ăn là bắt buộc")
+public class MenuItemRequestDTO {
+    @NotBlank(message = "Item name is required")
     private String itemName;
 
     private String description;
 
-    @NotNull(message = "Giá là bắt buộc")
-    @Positive(message = "Giá phải lớn hơn 0")
+    @NotNull(message = "Price is required")
+    @PositiveOrZero(message = "Price must be zero or positive")
     private Double price;
 
-
-    public MenuItemRequest() {
+    // Constructors
+    public MenuItemRequestDTO() {
     }
 
-    public MenuItemRequest(String itemName, String description, Double price) {
+    public MenuItemRequestDTO(String itemName, String description, Double price) {
         this.itemName = itemName;
         this.description = description;
         this.price = price;
     }
 
+    // Getters and Setters
     public String getItemName() {
         return itemName;
     }
@@ -46,5 +48,4 @@ public class MenuItemRequest {
     public void setPrice(Double price) {
         this.price = price;
     }
-
 }
