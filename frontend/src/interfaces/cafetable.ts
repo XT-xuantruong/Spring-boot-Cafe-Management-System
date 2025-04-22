@@ -12,3 +12,9 @@ export interface CafeTableRequest {
   capacity: number;
   status?: string;
 }
+
+export enum TableStatus {
+  AVAILABLE = "AVAILABLE",
+  RESERVED = "RESERVED",
+  OCCUPIED = "OCCUPIED",
+}
