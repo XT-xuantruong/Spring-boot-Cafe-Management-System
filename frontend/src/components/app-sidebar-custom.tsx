@@ -54,7 +54,7 @@ const data = {
     },
     {
       title: "Menu",
-      url: "#",
+      url: "/admin/menu",
       icon: SquareMenuIcon,
     },
     {
