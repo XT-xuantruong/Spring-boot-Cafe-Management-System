@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { z } from "zod";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import ReusableForm, {
   FormField,
   FormItem,
@@ -23,11 +23,12 @@ const loginSchema = z.object({
 
 export default function LoginPage() {
   const [loading, setLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
   const userRole = useSelector((state: RootState) => state.auth.user?.role);
+  const [showPassword, setShowPassword] = useState(false);
   const [login] = useLoginMutation();
-  const navigate = useNavigate();
   const { toast } = useToast();
+  const navigate = useNavigate();
+
 
   const togglePasswordVisibility = () => setShowPassword(!showPassword);
 
@@ -43,11 +44,6 @@ export default function LoginPage() {
             title: "Login successful.",
             description: "Welcome back!",
           });
-          if (userRole === "ADMIN" || userRole === "STAFF") {
-            navigate("/admin/dashboard")
-          } else{
-            navigate("/")
-          }
         });
     } catch (err:any) {
       const errorMessage = err?.data?.message || "An unknown error occurred";
@@ -61,6 +57,17 @@ export default function LoginPage() {
       setLoading(false);
     }
   };
+
+  // Chuyển hướng sau khi userRole được cập nhật
+  useEffect(() => {
+    if (userRole && !loading) {
+      if (userRole === "ADMIN" || userRole === "STAFF") {
+        navigate("/admin/dashboard");
+      } else {
+        navigate("/");
+      }
+    }
+  }, [userRole, loading, navigate]);
 
   
   return (
