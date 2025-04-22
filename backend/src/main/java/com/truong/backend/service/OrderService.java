@@ -47,9 +47,6 @@ public class OrderService {
         double totalAmount = 0.0;
         for (OrderItemRequest itemRequest : items) {
             MenuItem menuItem = menuItemService.getMenuItemById(itemRequest.getItemId());
-            if (!menuItem.getAvailable()) {
-                throw new IllegalArgumentException("Menu item not available: " + menuItem.getItemName());
-            }
 
             OrderItem orderItem = new OrderItem();
             orderItem.setOrder(order);

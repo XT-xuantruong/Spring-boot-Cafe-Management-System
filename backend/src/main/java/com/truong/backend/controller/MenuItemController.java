@@ -1,5 +1,6 @@
 package com.truong.backend.controller;
 
+import com.truong.backend.dto.ApiResponse;
 import com.truong.backend.dto.MenuItemRequest;
 import com.truong.backend.entity.MenuItem;
 import com.truong.backend.service.MenuItemService;
@@ -10,7 +11,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
 import java.util.List;
 
 @RestController
@@ -21,38 +21,65 @@ public class MenuItemController {
     private MenuItemService menuItemService;
 
     // Lấy danh sách món (Tất cả vai trò)
-    @GetMapping
-    public ResponseEntity<List<MenuItem>> getAllMenuItems() {
-        return ResponseEntity.ok(menuItemService.getAllMenuItems());
+    @GetMapping()
+    public ResponseEntity<ApiResponse<List<MenuItem>>> getAllMenuItems() {
+        List<MenuItem> menuItems = menuItemService.getAllMenuItems();
+        return ResponseEntity.ok(
+                new ApiResponse<>("success", "Get all menu items", menuItems)
+        );
     }
 
     // Lấy món theo ID (Tất cả vai trò)
-    @GetMapping("/{id}")
-    public ResponseEntity<MenuItem> getMenuItemById(@PathVariable Long id) {
-        return ResponseEntity.ok(menuItemService.getMenuItemById(id));
+    @GetMapping(value = "/{id}")
+    public ResponseEntity<ApiResponse<MenuItem>> getMenuItemById(@PathVariable Long id) {
+        MenuItem menuItem = menuItemService.getMenuItemById(id);
+        return ResponseEntity.ok(
+                new ApiResponse<>("success", "Get menu item by id", menuItem)
+        );
     }
 
     // Tạo món mới (Admin)
-    @PostMapping
+    @PostMapping(consumes = {"multipart/form-data"})
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public ResponseEntity<MenuItem> createMenuItem(@RequestBody @Valid MenuItemRequest menuItemRequest) {
-        return ResponseEntity.ok(menuItemService.createMenuItem(menuItemRequest));
+    public ResponseEntity<ApiResponse<MenuItem>> createMenuItem(
+            @RequestPart("itemName") @Valid String itemName,
+            @RequestPart("description") @Valid String description,
+            @RequestPart("price") @Valid String price,
+            @RequestPart(value = "image", required = false) MultipartFile image)
+    {
+
+        MenuItemRequest request = new MenuItemRequest(itemName,description,Double.parseDouble(price));
+        MenuItem menuItem = menuItemService.createMenuItem(request, image);
+        return ResponseEntity.ok(
+                new ApiResponse<>("success", "Create menu item", menuItem)
+        );
     }
 
     // Cập nhật món (Admin)
-    @PutMapping("/{id}")
+    @PutMapping(value = "/{id}", consumes = {"multipart/form-data"})
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public ResponseEntity<MenuItem> updateMenuItem(
+    public ResponseEntity<ApiResponse<MenuItem>> updateMenuItem(
             @PathVariable Long id,
-            @RequestBody MenuItemRequest menuItemRequest) {
-        return ResponseEntity.ok(menuItemService.updateMenuItem(id, menuItemRequest));
+            @RequestPart("itemName") @Valid String itemName,
+            @RequestPart("description") @Valid String description,
+            @RequestPart("price") @Valid String price,
+            @RequestPart(value = "image", required = false) MultipartFile image)
+    {
+        MenuItemRequest request = new MenuItemRequest(itemName,description,Double.parseDouble(price));
+        
+        MenuItem menuItem = menuItemService.updateMenuItem(id, request, image);
+        return ResponseEntity.ok(
+                new ApiResponse<>("success", "Update menu item", menuItem)
+        );
     }
 
     // Xóa món (Admin)
-    @DeleteMapping("/{id}")
+    @DeleteMapping( "/{id}")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public ResponseEntity<String> deleteMenuItem(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<String>> deleteMenuItem(@PathVariable Long id) {
         menuItemService.deleteMenuItem(id);
-        return ResponseEntity.ok("Item deleted");
+        return ResponseEntity.ok(
+                new ApiResponse<>( "success", "Delete menu item",null)
+        );
     }
 }
