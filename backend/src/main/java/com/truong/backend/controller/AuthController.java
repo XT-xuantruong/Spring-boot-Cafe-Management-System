@@ -76,10 +76,20 @@ public class AuthController {
         user.setEmail(registerRequest.getEmail());
         user.setPassword(passwordEncoder.encode(registerRequest.getPassword()));
         user.setName(registerRequest.getName());
-        user.setPhone(registerRequest.getPhone());
-        user.setAddress(registerRequest.getAddress());
         user.setRole(Role.CUSTOMER);
         userRepository.save(user);
         return ResponseEntity.ok(new ApiResponse<>("success", "User registered successfully", null));
+    }
+
+    @PostMapping(value = "/logout", produces = "application/json")
+    public ResponseEntity<ApiResponse<Object>> logout(@RequestBody RefreshTokenRequest request) {
+        String refreshToken = request.getRefreshToken();
+        return refreshTokenService.findByToken(refreshToken)
+                .map(token -> {
+                    refreshTokenService.deleteRefreshToken(refreshToken);
+                    return ResponseEntity.ok(new ApiResponse<>("success", "Logged out successfully", null));
+                })
+                .orElseGet(() -> ResponseEntity.badRequest()
+                        .body(new ApiResponse<>("error", "Refresh token not found", null)));
     }
 }

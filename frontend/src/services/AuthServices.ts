@@ -75,7 +75,6 @@ export const authServices = baseRestApi.injectEndpoints({
               user: data.data,
             })
           );
-          authServices.endpoints.sendOtp.initiate(null);
         } catch (error) {
           console.error("Register failed:", error);
         }
@@ -108,92 +107,6 @@ export const authServices = baseRestApi.injectEndpoints({
           );
         } catch (error) {
           console.error("Refresh token failed:", error);
-        }
-      },
-    }),
-    sendOtp: builder.mutation<
-      { data: any; message: string; status: number },
-      null
-    >({
-      query: () => ({
-        url: `${entity}/otp/send`,
-        method: "POST",
-        body: { email: (store.getState() as RootState).auth.user?.email },
-      }),
-      transformResponse: (response: ApiResponse<any>) => ({
-        data: response.data,
-        message: response.message,
-        status: response.status,
-      }),
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      async onQueryStarted(_, { dispatch, queryFulfilled }) {
-        try {
-          await queryFulfilled;
-        } catch (error) {
-          console.error("Send OTP failed:", error);
-        }
-      },
-    }),
-    verifyOtp: builder.mutation<
-      { data: any; message: string; status: number },
-      string
-    >({
-      query: (otp) => ({
-        url: `${entity}/otp/verify`,
-        method: "POST",
-        body: { email: (store.getState() as RootState).auth.user?.email, otp },
-      }),
-      transformResponse: (response: ApiResponse<any>) => ({
-        data: response.data,
-        message: response.message,
-        status: response.status,
-      }),
-      async onQueryStarted(_, { dispatch, queryFulfilled }) {
-        try {
-          const { data } = await queryFulfilled;
-          dispatch(
-            setUser({
-              user: data.data.user,
-            })
-          );
-        } catch (error) {
-          console.error("Verify OTP failed:", error);
-        }
-      },
-    }),
-    loginGoogle: builder.mutation<
-      { data: any; message: string; status: number },
-      any
-    >({
-      query: (token) => ({
-        url: `${entity}/google-login`,
-        method: "POST",
-        body: token,
-      }),
-      transformResponse: (response: ApiResponse<any>) => ({
-        data: response.data,
-        message: response.message,
-        status: response.status,
-      }),
-      async onQueryStarted(_, { dispatch, queryFulfilled }) {
-        try {
-          const { data } = await queryFulfilled;
-          dispatch(
-            setCredentials({
-              accessToken: data.data.accessToken,
-              refreshToken: data.data.refreshToken,
-            })
-          );
-          const meResult = await dispatch(
-            userServices.endpoints.getMe.initiate(undefined)
-          ).unwrap();
-          dispatch(
-            setUser({
-              user: meResult.data,
-            })
-          );
-        } catch (error) {
-          console.error("Login with Google failed:", error);
         }
       },
     }),

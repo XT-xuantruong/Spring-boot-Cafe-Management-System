@@ -60,4 +60,9 @@ public class RefreshTokenService {
             throw new RuntimeException("Invalid or expired refresh token");
         }
     }
+
+    public void deleteRefreshToken(String token) {
+        refreshTokenRepository.findByToken(token)
+                .ifPresent(refreshTokenRepository::delete);
+    }
 }
