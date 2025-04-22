@@ -3,6 +3,7 @@ import AuthLayout from "@/layouts/AuthLayout";
 import UserLayout from "@/layouts/UserLayout";
 import DashBoard from "@/pages/Admin/DashBoard";
 import MenuManagementPage from "@/pages/Admin/MenuManagementPage";
+import OrderManagementPage from "@/pages/Admin/OrderManagementPage";
 import ReservationManagementPage from "@/pages/Admin/ReserationManagementPage";
 import TableManagentsPage from "@/pages/Admin/TableManagentsPage";
 import UserManagementPage from "@/pages/Admin/UserManagementPage";
@@ -35,6 +36,11 @@ export const privateRoutes = [
   {
     path: "/admin/reservation",
     component: ReservationManagementPage,
+    layout: AdminLayout,
+  },
+  {
+    path: "/admin/order",
+    component: OrderManagementPage,
     layout: AdminLayout,
   },
   //   { path: "/profile/:id", component: ProfilePage, layout: AuthLayout },
