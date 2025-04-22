@@ -1,5 +1,5 @@
 import { baseRestApi } from "./baseRestApi";
-import { UserUpdate, User } from "@/interfaces/user";
+import { UserUpdate, User, UserRequest } from "@/interfaces/user";
 import { ApiResponse } from "@/interfaces/apiResponse";
 // import { RootState } from '@/stores';
 import { setUser } from "@/stores/authSlice";
@@ -17,18 +17,9 @@ export const userServices = baseRestApi.injectEndpoints({
         data: response.data,
         message: response.message,
       }),
+      providesTags: ["Users"],
     }),
-    getById: builder.query<{ data: User; message: string }, string>({
-      query: (id = "") => ({
-        url: `${entity}/${id}`,
-        method: "GET",
-      }),
-      transformResponse: (response: ApiResponse<User>) => ({
-        data: response.data,
-        message: response.message,
-      }),
-    }),
-    updateUser: builder.mutation<
+    updateProfile: builder.mutation<
       { data: User; message: string },
       { data: UserUpdate; file?: File }
     >({
@@ -70,7 +61,75 @@ export const userServices = baseRestApi.injectEndpoints({
         }
       },
     }),
+    getAllUsers: builder.query<{ data: User[]; message: string }, void>({
+      query: () => ({
+        url: `${entity}`,
+        method: "GET",
+      }),
+      transformResponse: (response: ApiResponse<User[]>) => ({
+        data: response.data,
+        message: response.message,
+      }),
+      providesTags: ["Users"],
+    }),
+    getById: builder.query<{ data: User; message: string }, string>({
+      query: (id = "") => ({
+        url: `${entity}/${id}`,
+        method: "GET",
+      }),
+      transformResponse: (response: ApiResponse<User>) => ({
+        data: response.data,
+        message: response.message,
+      }),
+      providesTags: (result, error, id) => [{ type: "Users", id }],
+    }),
+    createUser: builder.mutation<{ data: User; message: string }, UserRequest>({
+      query: (data) => ({
+        url: `${entity}`,
+        method: "POST",
+        body: data,
+      }),
+      transformResponse: (response: ApiResponse<User>) => ({
+        data: response.data,
+        message: response.message,
+      }),
+      invalidatesTags: ["Users"],
+    }),
+
+    updateUser: builder.mutation<
+      { data: User; message: string },
+      { data: UserRequest }
+    >({
+      query: ({ data }) => ({
+        url: `${entity}`,
+        method: "PUT",
+        body: data,
+      }),
+      transformResponse: (response: ApiResponse<User>) => ({
+        data: response.data,
+        message: response.message,
+      }),
+      invalidatesTags: ["Users"], // Làm mới danh sách và bàn cụ thể
+    }),
+
+    deleteUser: builder.mutation<{ message: string }, string>({
+      query: (id) => ({
+        url: `${entity}/${id}`,
+        method: "DELETE",
+      }),
+      transformResponse: (response: ApiResponse<null>) => ({
+        message: response.message,
+      }),
+      invalidatesTags: ["Users"],
+    }),
   }),
 });
-export const { useGetMeQuery, useUpdateUserMutation, useGetByIdQuery } =
-  userServices;
+export const {
+  useGetMeQuery,
+  useUpdateProfileMutation,
+  useCreateUserMutation,
+  useDeleteUserMutation,
+  useUpdateUserMutation,
+  useGetAllUsersQuery,
+  useGetByIdQuery,
+} = userServices;
