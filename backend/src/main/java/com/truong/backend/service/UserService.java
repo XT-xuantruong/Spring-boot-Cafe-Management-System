@@ -2,6 +2,7 @@ package com.truong.backend.service;
 
 import com.truong.backend.dto.UpdateProfileRequest;
 import com.truong.backend.dto.UpdateUserRequest;
+import com.truong.backend.dto.UserRequest;
 import com.truong.backend.dto.UserResponse;
 import com.truong.backend.entity.Role;
 import com.truong.backend.entity.User;
@@ -12,6 +13,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -47,6 +49,28 @@ public class UserService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
         return new UserResponse(user);
+    }
+    public UserResponse createUser(UserRequest request) {
+        // Kiểm tra xem email đã tồn tại chưa
+        Optional<User> u = userRepository.findByEmail(request.getEmail());
+        if (u.isPresent()){
+            throw new RuntimeException("Email already exists");
+        }
+
+        // Tạo entity User từ RegisterRequest
+        User user = new User();
+        user.setEmail(request.getEmail());
+        user.setPassword(passwordEncoder.encode(request.getPassword())); // Mã hóa password
+        user.setName(request.getName());
+        user.setPhone(request.getPhone());
+        user.setAddress(request.getAddress());
+        user.setRole(request.getRole());
+
+        // Lưu user vào database
+        User savedUser = userRepository.save(user);
+
+        // Chuyển đổi sang UserResponse
+        return new UserResponse(savedUser);
     }
 
     public UserResponse userUpdate(UpdateUserRequest request) {

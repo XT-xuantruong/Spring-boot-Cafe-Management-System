@@ -66,7 +66,7 @@ public class MenuItemController {
             @RequestPart(value = "image", required = false) MultipartFile image)
     {
         MenuItemRequest request = new MenuItemRequest(itemName,description,Double.parseDouble(price));
-        
+
         MenuItem menuItem = menuItemService.updateMenuItem(id, request, image);
         return ResponseEntity.ok(
                 new ApiResponse<>("success", "Update menu item", menuItem)
