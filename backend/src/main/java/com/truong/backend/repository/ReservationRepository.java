@@ -20,4 +20,8 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
     // Kiểm tra bàn có bị trùng lịch đặt không
     @Query("SELECT r FROM Reservation r WHERE r.cafeTable.tableId = :tableId AND r.reservationTime = :reservationTime AND r.status != 'CANCELLED'")
     List<Reservation> findByTableIdAndReservationTime(Long tableId, LocalDateTime reservationTime);
+
+    // Tìm các đặt chỗ có đơn hàng liên quan
+    @Query("SELECT r FROM Reservation r JOIN Order o ON o.reservation.reservationId = r.reservationId WHERE r.reservationId = :reservationId")
+    List<Reservation> findByReservationIdWithOrders(Long reservationId);
 }

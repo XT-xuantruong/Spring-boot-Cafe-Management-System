@@ -2,13 +2,16 @@ package com.truong.backend.service;
 
 import com.truong.backend.dto.ReservationResponse;
 import com.truong.backend.entity.CafeTable;
+import com.truong.backend.entity.Order;
 import com.truong.backend.entity.Reservation;
 import com.truong.backend.entity.ReservationStatus;
 import com.truong.backend.entity.User;
 import com.truong.backend.repository.CafeTableRepository;
+import com.truong.backend.repository.OrderRepository;
 import com.truong.backend.repository.ReservationRepository;
 import com.truong.backend.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -27,14 +30,18 @@ public class ReservationService {
     @Autowired
     private CafeTableRepository cafeTableRepository;
 
+    @Autowired
+    private OrderRepository orderRepository;
+
     // Tạo đặt bàn mới (Admin, Staff, Customer)
-    public ReservationResponse createReservation(Long userId, Long tableId, LocalDateTime reservationTime) {
+    public ReservationResponse createReservation(Authentication authentication, Long tableId, LocalDateTime reservationTime) {
         if (reservationTime == null) {
             throw new IllegalArgumentException("Reservation time must be provided");
         }
 
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("User not found with ID: " + userId));
+        String email = authentication.getName();
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("User not found with email: " + email));
         CafeTable table = cafeTableRepository.findById(tableId)
                 .orElseThrow(() -> new IllegalArgumentException("Table not found with ID: " + tableId));
 
@@ -52,28 +59,25 @@ public class ReservationService {
         return mapToResponseDTO(reservationRepository.save(reservation));
     }
 
-    // Lấy danh sách đặt bàn (Admin, Staff)
+    // Các phương thức khác giữ nguyên
     public List<ReservationResponse> getAllReservations() {
         return reservationRepository.findAll().stream()
                 .map(this::mapToResponseDTO)
                 .collect(Collectors.toList());
     }
 
-    // Lấy đặt bàn theo ID (Admin, Staff)
     public ReservationResponse getReservationById(Long id) {
         Reservation reservation = reservationRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Reservation not found with ID: " + id));
         return mapToResponseDTO(reservation);
     }
 
-    // Lấy danh sách đặt bàn của khách hàng (Customer)
     public List<ReservationResponse> getReservationsByUser(Long userId) {
         return reservationRepository.findByUserId(userId).stream()
                 .map(this::mapToResponseDTO)
                 .collect(Collectors.toList());
     }
 
-    // Cập nhật trạng thái đặt bàn (Admin, Staff)
     public ReservationResponse updateReservationStatus(Long id, ReservationStatus status) {
         Reservation reservation = reservationRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Reservation not found with ID: " + id));
@@ -81,11 +85,15 @@ public class ReservationService {
         return mapToResponseDTO(reservationRepository.save(reservation));
     }
 
-    // Hủy đặt bàn (Admin, Staff, Customer)
     public void cancelReservation(Long id) {
         Reservation reservation = reservationRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Reservation not found with ID: " + id));
         reservation.setStatus(ReservationStatus.CANCELLED);
+        List<Order> relatedOrders = orderRepository.findByReservationReservationId(id);
+        relatedOrders.forEach(order -> {
+            order.setReservation(null);
+            orderRepository.save(order);
+        });
         reservationRepository.save(reservation);
     }
 
@@ -111,6 +119,17 @@ public class ReservationService {
         tableDTO.setCapacity(reservation.getCafeTable().getCapacity());
         tableDTO.setStatus(String.valueOf(reservation.getCafeTable().getStatus()));
         dto.setCafeTable(tableDTO);
+
+        List<Order> relatedOrders = orderRepository.findByReservationReservationId(reservation.getReservationId());
+        if (!relatedOrders.isEmpty()) {
+            ReservationResponse.OrderDTO orderDTO = new ReservationResponse.OrderDTO();
+            orderDTO.setOrderId(relatedOrders.get(0).getOrderId());
+            orderDTO.setTotalAmount(relatedOrders.get(0).getTotalAmount());
+            orderDTO.setOrderStatus(relatedOrders.get(0).getOrderStatus());
+            orderDTO.setPaymentStatus(relatedOrders.get(0).getPaymentStatus());
+            dto.setOrder(orderDTO);
+        }
+
         return dto;
     }
 }
