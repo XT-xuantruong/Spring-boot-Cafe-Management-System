@@ -21,8 +21,9 @@ public class OrderController {
 
     @Autowired
     private OrderService orderService;
+
     @Autowired
-    private UserRepository  userRepository;
+    private UserRepository userRepository;
 
     // Lấy danh sách đơn hàng (Admin, Staff)
     @GetMapping
@@ -54,7 +55,6 @@ public class OrderController {
     public ResponseEntity<OrderResponse> createOrder(
             @RequestBody OrderRequest request,
             Authentication authentication) {
-
         String email = authentication.getName();
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("User not found with email: " + email));
@@ -62,10 +62,10 @@ public class OrderController {
         return ResponseEntity.ok(orderService.createOrder(
                 user.getId(),
                 request.getTableId(),
+                request.getReservationId(),
                 request.getItems()
         ));
     }
-
 
     // Cập nhật trạng thái đơn hàng (Admin, Staff)
     @PutMapping("/{id}")
