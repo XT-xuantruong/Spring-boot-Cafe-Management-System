@@ -1,21 +1,18 @@
 package com.truong.backend.dto;
 
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.NotNull;
 import java.util.List;
 
 public class OrderRequest {
-    @NotNull(message = "Table ID is required")
     private Long tableId;
-
-    @NotEmpty(message = "Items list cannot be empty")
+    private Long reservationId; // Thêm trường reservationId
     private List<OrderItemRequest> items;
 
     public OrderRequest() {
     }
 
-    public OrderRequest(Long tableId, List<OrderItemRequest> items) {
+    public OrderRequest(Long tableId, Long reservationId, List<OrderItemRequest> items) {
         this.tableId = tableId;
+        this.reservationId = reservationId;
         this.items = items;
     }
 
@@ -25,6 +22,14 @@ public class OrderRequest {
 
     public void setTableId(Long tableId) {
         this.tableId = tableId;
+    }
+
+    public Long getReservationId() {
+        return reservationId;
+    }
+
+    public void setReservationId(Long reservationId) {
+        this.reservationId = reservationId;
     }
 
     public List<OrderItemRequest> getItems() {

@@ -1,8 +1,6 @@
 package com.truong.backend.dto;
 
-
 public class OrderItemRequest {
-    // Getters and setters
     private Long itemId;
     private Integer quantity;
 
