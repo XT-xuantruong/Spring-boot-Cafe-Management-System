@@ -66,7 +66,7 @@ export const orderServices = baseRestApi.injectEndpoints({
       query: ({ id, status }) => ({
         url: `${entity}/${id}/status`,
         method: "PUT",
-        body: { status },
+        body: status,
       }),
       transformResponse: (response: ApiResponse<Order>) => ({
         data: response.data,
