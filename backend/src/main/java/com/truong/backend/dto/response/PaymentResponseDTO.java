@@ -1,7 +1,7 @@
 package com.truong.backend.dto.response;
 
-import com.truong.backend.entity.PaymentMethod;
-import com.truong.backend.entity.PaymentStatus;
+import com.truong.backend.entity.enums.PaymentMethod;
+import com.truong.backend.entity.enums.PaymentStatus;
 
 import java.time.LocalDateTime;
 

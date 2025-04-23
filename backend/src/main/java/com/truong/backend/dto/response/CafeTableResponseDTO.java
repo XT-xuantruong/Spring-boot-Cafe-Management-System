@@ -1,6 +1,6 @@
 package com.truong.backend.dto.response;
 
-import com.truong.backend.entity.TableStatus;
+import com.truong.backend.entity.enums.TableStatus;
 
 import java.time.LocalDateTime;
 

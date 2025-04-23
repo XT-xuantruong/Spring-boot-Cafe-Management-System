@@ -1,4 +1,4 @@
-package com.truong.backend.entity;
+package com.truong.backend.entity.enums;
 
 public enum Role {
     ADMIN,

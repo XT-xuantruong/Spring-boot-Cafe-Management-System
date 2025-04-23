@@ -1,7 +1,7 @@
 package com.truong.backend.repository;
 
 import com.truong.backend.entity.Payment;
-import com.truong.backend.entity.PaymentStatus;
+import com.truong.backend.entity.enums.PaymentStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;

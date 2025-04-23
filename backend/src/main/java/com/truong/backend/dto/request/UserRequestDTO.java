@@ -1,6 +1,6 @@
 package com.truong.backend.dto.request;
 
-import com.truong.backend.entity.Role;
+import com.truong.backend.entity.enums.Role;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 
@@ -19,19 +19,21 @@ public class UserRequestDTO {
 
     private String address;
 
+    private String avatarUrl;
+
     private Role role;
 
     // Constructors
     public UserRequestDTO() {
     }
 
-    public UserRequestDTO(String email, String password, String name, String phone,
-                          String address, Role role) {
+    public UserRequestDTO(String email, String password, String name, String phone, String address, String avatarUrl, Role role) {
         this.email = email;
         this.password = password;
         this.name = name;
         this.phone = phone;
         this.address = address;
+        this.avatarUrl = avatarUrl;
         this.role = role;
     }
 
@@ -74,6 +76,14 @@ public class UserRequestDTO {
 
     public void setAddress(String address) {
         this.address = address;
+    }
+
+    public String getAvatarUrl() {
+        return avatarUrl;
+    }
+
+    public void setAvatarUrl(String avatarUrl) {
+        this.avatarUrl = avatarUrl;
     }
 
     public Role getRole() {

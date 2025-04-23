@@ -1,6 +1,6 @@
 package com.truong.backend.dto.request;
 
-import com.truong.backend.entity.ReservationStatus;
+import com.truong.backend.entity.enums.ReservationStatus;
 import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.NotNull;
 

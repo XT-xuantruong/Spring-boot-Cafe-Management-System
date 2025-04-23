@@ -3,7 +3,7 @@ package com.truong.backend.controller;
 import com.truong.backend.dto.request.CafeTableRequestDTO;
 import com.truong.backend.dto.response.ApiResponse;
 import com.truong.backend.entity.CafeTable;
-import com.truong.backend.entity.TableStatus;
+import com.truong.backend.entity.enums.TableStatus;
 import com.truong.backend.service.CafeTableService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;

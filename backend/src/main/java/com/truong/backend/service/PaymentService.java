@@ -1,13 +1,17 @@
 package com.truong.backend.service;
 
+import com.truong.backend.dto.request.PaymentRequestDTO;
+import com.truong.backend.dto.response.PaymentResponseDTO;
 import com.truong.backend.entity.Order;
 import com.truong.backend.entity.Payment;
-import com.truong.backend.entity.PaymentStatus;
+import com.truong.backend.entity.enums.PaymentStatus;
+import com.truong.backend.mapper.PaymentMapper;
 import com.truong.backend.repository.OrderRepository;
 import com.truong.backend.repository.PaymentRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -22,83 +26,78 @@ public class PaymentService {
     @Autowired
     private OrderRepository orderRepository;
 
-    private PaymentResponse toResponse(Payment payment) {
-        PaymentResponse response = new PaymentResponse();
-        response.setPaymentId(payment.getPaymentId());
-        response.setOrderId(payment.getOrder().getOrderId());
-        response.setAmount(payment.getAmount());
-        response.setPaymentMethod(payment.getPaymentMethod());
-        response.setPaymentStatus(payment.getPaymentStatus());
-        response.setPaymentTime(payment.getPaymentTime());
-        response.setTransactionId(payment.getTransactionId());
-        return response;
-    }
+    @Autowired
+    private PaymentMapper paymentMapper;
 
-    public PaymentResponse processPayment(PaymentRequest paymentRequest) {
+    @Transactional
+    public PaymentResponseDTO processPayment(PaymentRequestDTO paymentRequest) {
+        // Validate Order
         Order order = orderRepository.findById(paymentRequest.getOrderId())
                 .orElseThrow(() -> new IllegalArgumentException("Order not found with ID: " + paymentRequest.getOrderId()));
 
-        // Kiểm tra xem Order đã có Payment chưa
-        if (order.getPayment() != null) {
-            throw new IllegalArgumentException("Order already has a Payment. Each Order can only have one Payment.");
+        // Check if Order already has a Payment
+        if (paymentRepository.findByOrderOrderId(paymentRequest.getOrderId()).isPresent()) {
+            throw new IllegalStateException("Order already has a Payment. Each Order can only have one Payment.");
         }
 
-        if (paymentRepository.existsByTransactionId(paymentRequest.getTransactionId())) {
-            throw new IllegalArgumentException("Transaction ID '" + paymentRequest.getTransactionId() + "' already exists");
+        // Validate transactionId for ONLINE payment
+        if (paymentRequest.getPaymentMethod() == com.truong.backend.entity.enums.PaymentMethod.ONLINE &&
+                (paymentRequest.getTransactionId() == null || paymentRequest.getTransactionId().trim().isEmpty())) {
+            throw new IllegalArgumentException("Transaction ID is required for ONLINE payment method");
         }
 
+        // Check if transactionId is unique
+        if (paymentRequest.getTransactionId() != null && paymentRepository.existsByTransactionId(paymentRequest.getTransactionId())) {
+            throw new IllegalStateException("Transaction ID '" + paymentRequest.getTransactionId() + "' already exists");
+        }
+
+        // Create Payment
         Payment payment = new Payment();
         payment.setOrder(order);
         payment.setAmount(paymentRequest.getAmount());
         payment.setPaymentMethod(paymentRequest.getPaymentMethod());
-        payment.setPaymentStatus(PaymentStatus.PAID);
+        payment.setPaymentStatus(PaymentStatus.PAID); // Default to PAID
         payment.setPaymentTime(LocalDateTime.now());
         payment.setTransactionId(paymentRequest.getTransactionId());
 
+        // Save Payment
         Payment savedPayment;
         try {
             savedPayment = paymentRepository.save(payment);
         } catch (DataIntegrityViolationException e) {
-            throw new IllegalArgumentException("Transaction ID '" + paymentRequest.getTransactionId() + "' already exists");
+            throw new IllegalStateException("Failed to save payment due to data integrity violation: " + e.getMessage());
         }
 
-        // Liên kết Payment với Order và đồng bộ paymentStatus
-        order.setPayment(savedPayment);
-        order.setPaymentStatus(savedPayment.getPaymentStatus());
         orderRepository.save(order);
 
-        return toResponse(savedPayment);
+        return paymentMapper.toResponseDTO(savedPayment);
     }
 
-    public List<PaymentResponse> getAllPayments() {
+    public List<PaymentResponseDTO> getAllPayments() {
         return paymentRepository.findAll().stream()
-                .map(this::toResponse)
+                .map(paymentMapper::toResponseDTO)
                 .collect(Collectors.toList());
     }
 
-    public List<PaymentResponse> getPaymentsByOrder(Long orderId) {
-        Payment payment = paymentRepository.findByOrderOrderId(orderId)
-                .orElse(null);
-        return payment != null ? List.of(toResponse(payment)) : List.of();
+    public List<PaymentResponseDTO> getPaymentsByOrder(Long orderId) {
+        return paymentRepository.findByOrderOrderId(orderId)
+                .map(paymentMapper::toResponseDTO)
+                .map(List::of)
+                .orElse(List.of());
     }
 
-    public List<PaymentResponse> getPaymentsByUser(Long userId) {
+    public List<PaymentResponseDTO> getPaymentsByUser(Long userId) {
         return paymentRepository.findByUserId(userId).stream()
-                .map(this::toResponse)
+                .map(paymentMapper::toResponseDTO)
                 .collect(Collectors.toList());
     }
 
-    public PaymentResponse updatePaymentStatus(Long id, UpdatePaymentRequest updatePaymentRequest) {
+    @Transactional
+    public PaymentResponseDTO updatePaymentStatus(Long id, PaymentStatus paymentStatus) {
         Payment payment = paymentRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Payment not found with ID: " + id));
-        payment.setPaymentStatus(updatePaymentRequest.getPaymentStatus());
+        payment.setPaymentStatus(paymentStatus);
         Payment updatedPayment = paymentRepository.save(payment);
-
-        // Đồng bộ Order.paymentStatus với Payment.paymentStatus
-        Order order = payment.getOrder();
-        order.setPaymentStatus(updatedPayment.getPaymentStatus());
-        orderRepository.save(order);
-
-        return toResponse(updatedPayment);
+        return paymentMapper.toResponseDTO(updatedPayment);
     }
 }

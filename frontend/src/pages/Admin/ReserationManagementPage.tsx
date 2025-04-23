@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { format } from "date-fns";
+import { useSelector } from "react-redux";
+import { format, setHours, setMinutes } from "date-fns";
 import {
   Table,
   TableBody,
@@ -24,10 +25,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
 import { Label } from "@/components/ui/label";
 import { toast } from "@/hooks/use-toast";
-import { Loader2, Trash2, Edit, Plus } from "lucide-react";
+import { Loader2, Trash2, Edit, Plus, CalendarIcon } from "lucide-react";
 import {
   useGetAllReservationsQuery,
   useGetAvailableTablesQuery,
@@ -37,7 +43,9 @@ import {
 } from "@/services/reservationServices";
 import { Reservation } from "@/interfaces/reservation";
 import { CafeTable } from "@/interfaces/cafetable";
-import { ReservationStatus } from "@/interfaces/reservation";
+import { RootState } from "@/stores";
+import { ReservationStatus } from "@/enums/reservationStatus";
+import { cn } from "@/lib/utils";
 
 const ReservationManagementPage = () => {
   const { data: reservationsData, error: reservationsError, isLoading: isReservationsLoading } =
@@ -49,6 +57,8 @@ const ReservationManagementPage = () => {
     useUpdateReservationStatusMutation();
   const [deleteReservation, { isLoading: isDeleting }] = useDeleteReservationMutation();
 
+  const userId = useSelector((state: RootState) => state.auth.user?.id);
+
   const [selectedReservation, setSelectedReservation] = useState<Reservation | null>(null);
   const [newStatus, setNewStatus] = useState<ReservationStatus | "">("");
   const [isUpdateDialogOpen, setIsUpdateDialogOpen] = useState(false);
@@ -57,11 +67,32 @@ const ReservationManagementPage = () => {
   const [isOrderDialogOpen, setIsOrderDialogOpen] = useState(false);
   const [createForm, setCreateForm] = useState({
     tableId: "",
-    reservationTime: "",
+    date: null as Date | null,
+    time: "",
+    status: ReservationStatus.PENDING,
   });
 
+  const generateTimeOptions = () => {
+    const times = [];
+    for (let hour = 0; hour < 24; hour++) {
+      for (let minute = 0; minute < 60; minute += 30) {
+        const time = `${hour.toString().padStart(2, "0")}:${minute.toString().padStart(2, "0")}`;
+        times.push(time);
+      }
+    }
+    return times;
+  };
+
   const handleCreate = async () => {
-    if (!createForm.tableId || !createForm.reservationTime) {
+    if (!userId) {
+      toast({
+        title: "Error",
+        description: "Please log in to create a reservation",
+        variant: "destructive",
+      });
+      return;
+    }
+    if (!createForm.tableId || !createForm.date || !createForm.time) {
       toast({
         title: "Error",
         description: "Please fill in all fields",
@@ -70,17 +101,30 @@ const ReservationManagementPage = () => {
       return;
     }
 
+    const [hours, minutes] = createForm.time.split(":").map(Number);
+    const reservationTime = setHours(setMinutes(createForm.date, minutes), hours);
+    if (reservationTime < new Date()) {
+      toast({
+        title: "Error",
+        description: "Reservation time must be in the present or future",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       const result = await createReservation({
+        userId,
         tableId: parseInt(createForm.tableId),
-        reservationTime: createForm.reservationTime,
+        reservationTime: reservationTime.toISOString(),
+        status: createForm.status,
       }).unwrap();
       toast({
         title: "Success",
         description: `Created reservation #${result.data.reservationId}`,
       });
       setIsCreateDialogOpen(false);
-      setCreateForm({ tableId: "", reservationTime: "" });
+      setCreateForm({ tableId: "", date: null, time: "", status: ReservationStatus.PENDING });
     } catch (error) {
       toast({
         title: "Error",
@@ -174,7 +218,10 @@ const ReservationManagementPage = () => {
       <h1 className="text-2xl font-bold mb-6">Reservation Management</h1>
 
       <div className="mb-4">
-        <Button onClick={() => setIsCreateDialogOpen(true)}>
+        <Button
+          className="bg-blue-600 hover:bg-blue-700 text-white"
+          onClick={() => setIsCreateDialogOpen(true)}
+        >
           <Plus className="w-4 h-4 mr-2" /> Create Reservation
         </Button>
       </div>
@@ -195,36 +242,36 @@ const ReservationManagementPage = () => {
           {reservationsData?.data.map((reservation: Reservation) => (
             <TableRow key={reservation.reservationId}>
               <TableCell>{reservation.reservationId}</TableCell>
-              <TableCell>{reservation.user.name}</TableCell>
-              <TableCell>{reservation.cafeTable.tableNumber}</TableCell>
+              <TableCell>{reservation.userName}</TableCell>
+              <TableCell>{reservation.tableNumber}</TableCell>
               <TableCell>
                 {format(new Date(reservation.reservationTime), "MMM dd, yyyy HH:mm")}
               </TableCell>
               <TableCell>
                 {reservation.status === ReservationStatus.PENDING && (
-                    <span className="inline-block px-2 py-1 rounded bg-yellow-100 text-yellow-800">
+                  <span className="inline-block px-2 py-1 rounded bg-yellow-100 text-yellow-800">
                     {reservation.status}
-                    </span>
+                  </span>
                 )}
                 {reservation.status === ReservationStatus.CONFIRMED && (
-                    <span className="inline-block px-2 py-1 rounded bg-green-100 text-green-800">
+                  <span className="inline-block px-2 py-1 rounded bg-green-100 text-green-800">
                     {reservation.status}
-                    </span>
+                  </span>
                 )}
                 {reservation.status === ReservationStatus.CANCELLED && (
-                    <span className="inline-block px-2 py-1 rounded bg-red-100 text-red-800">
+                  <span className="inline-block px-2 py-1 rounded bg-red-100 text-red-800">
                     {reservation.status}
-                    </span>
+                  </span>
                 )}
               </TableCell>
               <TableCell>
-                {reservation.order ? (
+                {reservation.orderId ? (
                   <Button
                     variant="link"
                     onClick={() => openOrderDialog(reservation)}
-                    className="p-0 h-auto"
+                    className="p-0 h-auto text-blue-600 hover:underline"
                   >
-                    Order #{reservation.order.orderId} (${reservation.order.totalAmount})
+                    Order #{reservation.orderId} (${reservation.totalAmount?.toFixed(2) || "0.00"})
                   </Button>
                 ) : (
                   "No order"
@@ -237,6 +284,7 @@ const ReservationManagementPage = () => {
                     size="sm"
                     onClick={() => openUpdateDialog(reservation)}
                     disabled={isUpdating}
+                    className="border-blue-600 text-blue-600 hover:bg-blue-50"
                   >
                     <Edit className="w-4 h-4 mr-1" /> Update
                   </Button>
@@ -244,7 +292,8 @@ const ReservationManagementPage = () => {
                     variant="destructive"
                     size="sm"
                     onClick={() => openDeleteDialog(reservation)}
-                    disabled={isDeleting}
+                    disabled={true} 
+                    className="bg-red-600 hover:bg-red-700"
                   >
                     <Trash2 className="w-4 h-4 mr-1" /> Delete
                   </Button>
@@ -257,21 +306,21 @@ const ReservationManagementPage = () => {
 
       {/* Dialog for creating reservation */}
       <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
             <DialogTitle>Create New Reservation</DialogTitle>
             <DialogDescription>Enter details to create a new reservation.</DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="tableId" className="text-right">
+              <Label htmlFor="tableId" className="text-right font-medium">
                 Table
               </Label>
               <Select
                 value={createForm.tableId}
                 onValueChange={(value) => setCreateForm({ ...createForm, tableId: value })}
               >
-                <SelectTrigger className="col-span-3">
+                <SelectTrigger className="col-span-3 border-gray-300 focus:ring-blue-500">
                   <SelectValue placeholder="Select a table" />
                 </SelectTrigger>
                 <SelectContent>
@@ -297,25 +346,87 @@ const ReservationManagementPage = () => {
               </Select>
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="reservationTime" className="text-right">
-                Reservation Time
+              <Label htmlFor="date" className="text-right font-medium">
+                Date
               </Label>
-              <Input
-                id="reservationTime"
-                type="datetime-local"
-                value={createForm.reservationTime}
-                onChange={(e) =>
-                  setCreateForm({ ...createForm, reservationTime: e.target.value })
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "col-span-3 justify-start text-left font-normal",
+                      !createForm.date && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {createForm.date ? format(createForm.date, "PPP") : <span>Pick a date</span>}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={createForm.date || undefined}
+                    onSelect={(date: Date | undefined) => setCreateForm({ ...createForm, date: date ?? null })}
+                    disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="time" className="text-right font-medium">
+                Time
+              </Label>
+              <Select
+                value={createForm.time}
+                onValueChange={(value) => setCreateForm({ ...createForm, time: value })}
+              >
+                <SelectTrigger className="col-span-3 border-gray-300 focus:ring-blue-500">
+                  <SelectValue placeholder="Select a time" />
+                </SelectTrigger>
+                <SelectContent>
+                  {generateTimeOptions().map((time) => (
+                    <SelectItem key={time} value={time}>
+                      {time}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="status" className="text-right font-medium">
+                Status
+              </Label>
+              <Select
+                value={createForm.status}
+                onValueChange={(value) =>
+                  setCreateForm({ ...createForm, status: value as ReservationStatus })
                 }
-                className="col-span-3"
-              />
+              >
+                <SelectTrigger className="col-span-3 border-gray-300 focus:ring-blue-500">
+                  <SelectValue placeholder="Select status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={ReservationStatus.PENDING}>Pending</SelectItem>
+                  <SelectItem value={ReservationStatus.CONFIRMED}>Confirmed</SelectItem>
+                  <SelectItem value={ReservationStatus.CANCELLED}>Cancelled</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
+            <Button
+              variant="outline"
+              onClick={() => setIsCreateDialogOpen(false)}
+              className="border-gray-300 text-gray-700 hover:bg-gray-100"
+            >
               Cancel
             </Button>
-            <Button onClick={handleCreate} disabled={isCreating}>
+            <Button
+              onClick={handleCreate}
+              disabled={isCreating}
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+            >
               {isCreating ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
               Create
             </Button>
@@ -325,7 +436,7 @@ const ReservationManagementPage = () => {
 
       {/* Dialog for updating status */}
       <Dialog open={isUpdateDialogOpen} onOpenChange={setIsUpdateDialogOpen}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
             <DialogTitle>Update Reservation Status</DialogTitle>
             <DialogDescription>
@@ -337,7 +448,7 @@ const ReservationManagementPage = () => {
               value={newStatus}
               onValueChange={(value) => setNewStatus(value as ReservationStatus)}
             >
-              <SelectTrigger>
+              <SelectTrigger className="border-gray-300 focus:ring-blue-500">
                 <SelectValue placeholder="Select status" />
               </SelectTrigger>
               <SelectContent>
@@ -360,10 +471,18 @@ const ReservationManagementPage = () => {
             </Select>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsUpdateDialogOpen(false)}>
+            <Button
+              variant="outline"
+              onClick={() => setIsUpdateDialogOpen(false)}
+              className="border-gray-300 text-gray-700 hover:bg-gray-100"
+            >
               Cancel
             </Button>
-            <Button onClick={handleUpdateStatus} disabled={isUpdating || !newStatus}>
+            <Button
+              onClick={handleUpdateStatus}
+              disabled={isUpdating || !newStatus}
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+            >
               {isUpdating ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
               Save
             </Button>
@@ -373,7 +492,7 @@ const ReservationManagementPage = () => {
 
       {/* Dialog for deleting reservation */}
       <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
             <DialogTitle>Delete Reservation</DialogTitle>
             <DialogDescription>
@@ -382,10 +501,19 @@ const ReservationManagementPage = () => {
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>
+            <Button
+              variant="outline"
+              onClick={() => setIsDeleteDialogOpen(false)}
+              className="border-gray-300 text-gray-700 hover:bg-gray-100"
+            >
               Cancel
             </Button>
-            <Button variant="destructive" onClick={handleDelete} disabled={isDeleting}>
+            <Button
+              variant="destructive"
+              onClick={handleDelete}
+              disabled={isDeleting}
+              className="bg-red-600 hover:bg-red-700"
+            >
               {isDeleting ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
               Delete
             </Button>
@@ -395,31 +523,32 @@ const ReservationManagementPage = () => {
 
       {/* Dialog for viewing order details */}
       <Dialog open={isOrderDialogOpen} onOpenChange={setIsOrderDialogOpen}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
             <DialogTitle>Order Details</DialogTitle>
             <DialogDescription>
-              Details for order #{selectedReservation?.order?.orderId}
+              Details for order #{selectedReservation?.orderId}
             </DialogDescription>
           </DialogHeader>
-          {selectedReservation?.order && (
+          {selectedReservation?.orderId && (
             <div className="py-4 space-y-2">
               <p>
-                <strong>Order ID:</strong> {selectedReservation.order.orderId}
+                <strong>Order ID:</strong> {selectedReservation.orderId}
               </p>
               <p>
-                <strong>Total Amount:</strong> ${selectedReservation.order.totalAmount}
+                <strong>Total Amount:</strong> ${selectedReservation.totalAmount?.toFixed(2) || "0.00"}
               </p>
               <p>
-                <strong>Order Status:</strong> {selectedReservation.order.orderStatus}
-              </p>
-              <p>
-                <strong>Payment Status:</strong> {selectedReservation.order.paymentStatus}
+                <strong>Order Status:</strong> {selectedReservation.orderStatus || "N/A"}
               </p>
             </div>
           )}
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsOrderDialogOpen(false)}>
+            <Button
+              variant="outline"
+              onClick={() => setIsOrderDialogOpen(false)}
+              className="border-gray-300 text-gray-700 hover:bg-gray-100"
+            >
               Close
             </Button>
           </DialogFooter>

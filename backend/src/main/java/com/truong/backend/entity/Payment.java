@@ -1,5 +1,7 @@
 package com.truong.backend.entity;
 
+import com.truong.backend.entity.enums.PaymentMethod;
+import com.truong.backend.entity.enums.PaymentStatus;
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;

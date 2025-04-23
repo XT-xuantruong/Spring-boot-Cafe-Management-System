@@ -1,7 +1,7 @@
 package com.truong.backend.repository;
 
 import com.truong.backend.entity.CafeTable;
-import com.truong.backend.entity.TableStatus;
+import com.truong.backend.entity.enums.TableStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

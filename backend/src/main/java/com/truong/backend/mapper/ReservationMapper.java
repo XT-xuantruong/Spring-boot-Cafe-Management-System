@@ -10,15 +10,14 @@ import org.mapstruct.factory.Mappers;
 public interface ReservationMapper {
     ReservationMapper INSTANCE = Mappers.getMapper(ReservationMapper.class);
 
-    // Ánh xạ từ Reservation sang ReservationResponseDTO
     @Mapping(source = "user.id", target = "userId")
     @Mapping(source = "user.name", target = "userName")
     @Mapping(source = "cafeTable.tableId", target = "tableId")
     @Mapping(source = "cafeTable.tableNumber", target = "tableNumber")
     @Mapping(source = "reservationTime", target = "reservationTime")
     @Mapping(source = "status", target = "status")
-    @Mapping(target = "orderId", expression = "java(reservation.getOrder() != null ? reservation.getOrder().getOrderId() : null)")
-    @Mapping(target = "totalAmount", expression = "java(reservation.getOrder() != null ? reservation.getOrder().getTotalAmount() : null)")
-    @Mapping(target = "orderStatus", expression = "java(reservation.getOrder() != null ? reservation.getOrder().getOrderStatus() : null)")
+    @Mapping(target = "orderId", ignore = true) // Sẽ được set trong ReservationService
+    @Mapping(target = "totalAmount", ignore = true) // Sẽ được set trong ReservationService
+    @Mapping(target = "orderStatus", ignore = true) // Sẽ được set trong ReservationService
     ReservationResponseDTO toResponseDTO(Reservation reservation);
 }
