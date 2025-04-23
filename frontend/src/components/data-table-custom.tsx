@@ -40,7 +40,6 @@ import {
   ChevronsLeftIcon,
   ChevronsRightIcon,
   ColumnsIcon,
-  GripVerticalIcon,
   PlusIcon,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -74,24 +73,7 @@ import {
   TabsTrigger,
 } from "@/components/ui/tabs";
 
-// Drag Handle Component
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function DragHandle({ id }: { id: UniqueIdentifier }) {
-  const { attributes, listeners } = useSortable({ id });
 
-  return (
-    <Button
-      {...attributes}
-      {...listeners}
-      variant="ghost"
-      size="icon"
-      className="size-7 text-muted-foreground hover:bg-transparent"
-    >
-      <GripVerticalIcon className="size-3 text-muted-foreground" />
-      <span className="sr-only">Drag to reorder</span>
-    </Button>
-  );
-}
 
 // Generic Draggable Row Component
 function DraggableRow<TData extends { id: string | number }>({ row }: { row: Row<TData> }) {

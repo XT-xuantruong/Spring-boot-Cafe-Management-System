@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import {
@@ -6,7 +5,7 @@ import {
 } from '@/services/reservationServices'; // Assume updateProfile is exported here
 import { RootState } from '@/stores';
 import { setUser } from '@/stores/authSlice';
-import { User, UserUpdate } from '@/interfaces/user';
+import { UserUpdate } from '@/interfaces/user';
 import { Reservation } from '@/interfaces/reservation';
 import {
   Tabs,

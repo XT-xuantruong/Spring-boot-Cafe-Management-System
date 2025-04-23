@@ -33,7 +33,7 @@ export const menuItemServices = baseRestApi.injectEndpoints({
           data: response.data,
           message: response.message,
         }),
-        providesTags: (result, error, id) => [{ type: "MenuItems", id }], // Cache theo ID
+        providesTags: (_result, _error, id) => [{ type: "MenuItems", id }], // Cache theo ID
       }
     ),
 
@@ -92,7 +92,7 @@ export const menuItemServices = baseRestApi.injectEndpoints({
         data: response.data,
         message: response.message,
       }),
-      invalidatesTags: (result, error, { id }) => [
+      invalidatesTags: (_result, _error, { id }) => [
         "MenuItems",
         { type: "MenuItems", id },
       ], // Làm mới danh sách và món cụ thể
