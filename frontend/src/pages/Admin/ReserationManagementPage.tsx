@@ -35,15 +35,19 @@ import {
   useUpdateReservationStatusMutation,
   useDeleteReservationMutation,
 } from "@/services/reservationServices";
+import { useGetAllUsersQuery } from "@/services/UserSerivces";
 import { Reservation } from "@/interfaces/reservation";
 import { CafeTable } from "@/interfaces/cafetable";
-import { ReservationStatus } from "@/interfaces/reservation";
+import { User } from "@/interfaces/user";
+import { ReservationStatus } from "@/enums/reservationStatus";
 
 const ReservationManagementPage = () => {
   const { data: reservationsData, error: reservationsError, isLoading: isReservationsLoading } =
     useGetAllReservationsQuery();
   const { data: tablesData, error: tablesError, isLoading: isTablesLoading } =
     useGetAvailableTablesQuery();
+  const { data: usersData, error: usersError, isLoading: isUsersLoading } =
+    useGetAllUsersQuery();
   const [createReservation, { isLoading: isCreating }] = useCreateReservationMutation();
   const [updateReservationStatus, { isLoading: isUpdating }] =
     useUpdateReservationStatusMutation();
@@ -56,12 +60,14 @@ const ReservationManagementPage = () => {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isOrderDialogOpen, setIsOrderDialogOpen] = useState(false);
   const [createForm, setCreateForm] = useState({
+    userId: "",
     tableId: "",
     reservationTime: "",
+    status: ReservationStatus.PENDING,
   });
 
   const handleCreate = async () => {
-    if (!createForm.tableId || !createForm.reservationTime) {
+    if (!createForm.userId || !createForm.tableId || !createForm.reservationTime) {
       toast({
         title: "Error",
         description: "Please fill in all fields",
@@ -70,17 +76,29 @@ const ReservationManagementPage = () => {
       return;
     }
 
+    const reservationTime = new Date(createForm.reservationTime);
+    if (reservationTime < new Date()) {
+      toast({
+        title: "Error",
+        description: "Reservation time must be in the present or future",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       const result = await createReservation({
+        userId: parseInt(createForm.userId),
         tableId: parseInt(createForm.tableId),
-        reservationTime: createForm.reservationTime,
+        reservationTime: reservationTime.toISOString(),
+        status: createForm.status,
       }).unwrap();
       toast({
         title: "Success",
         description: `Created reservation #${result.data.reservationId}`,
       });
       setIsCreateDialogOpen(false);
-      setCreateForm({ tableId: "", reservationTime: "" });
+      setCreateForm({ userId: "", tableId: "", reservationTime: "", status: ReservationStatus.PENDING });
     } catch (error) {
       toast({
         title: "Error",
@@ -195,36 +213,36 @@ const ReservationManagementPage = () => {
           {reservationsData?.data.map((reservation: Reservation) => (
             <TableRow key={reservation.reservationId}>
               <TableCell>{reservation.reservationId}</TableCell>
-              <TableCell>{reservation.user.name}</TableCell>
-              <TableCell>{reservation.cafeTable.tableNumber}</TableCell>
+              <TableCell>{reservation.userName}</TableCell>
+              <TableCell>{reservation.tableNumber}</TableCell>
               <TableCell>
                 {format(new Date(reservation.reservationTime), "MMM dd, yyyy HH:mm")}
               </TableCell>
               <TableCell>
                 {reservation.status === ReservationStatus.PENDING && (
-                    <span className="inline-block px-2 py-1 rounded bg-yellow-100 text-yellow-800">
+                  <span className="inline-block px-2 py-1 rounded bg-yellow-100 text-yellow-800">
                     {reservation.status}
-                    </span>
+                  </span>
                 )}
                 {reservation.status === ReservationStatus.CONFIRMED && (
-                    <span className="inline-block px-2 py-1 rounded bg-green-100 text-green-800">
+                  <span className="inline-block px-2 py-1 rounded bg-green-100 text-green-800">
                     {reservation.status}
-                    </span>
+                  </span>
                 )}
                 {reservation.status === ReservationStatus.CANCELLED && (
-                    <span className="inline-block px-2 py-1 rounded bg-red-100 text-red-800">
+                  <span className="inline-block px-2 py-1 rounded bg-red-100 text-red-800">
                     {reservation.status}
-                    </span>
+                  </span>
                 )}
               </TableCell>
               <TableCell>
-                {reservation.order ? (
+                {reservation.orderId ? (
                   <Button
                     variant="link"
                     onClick={() => openOrderDialog(reservation)}
                     className="p-0 h-auto"
                   >
-                    Order #{reservation.order.orderId} (${reservation.order.totalAmount})
+                    Order #{reservation.orderId} (${reservation.totalAmount?.toFixed(2) || '0.00'})
                   </Button>
                 ) : (
                   "No order"
@@ -263,6 +281,39 @@ const ReservationManagementPage = () => {
             <DialogDescription>Enter details to create a new reservation.</DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="userId" className="text-right">
+                Customer
+              </Label>
+              <Select
+                value={createForm.userId}
+                onValueChange={(value) => setCreateForm({ ...createForm, userId: value })}
+              >
+                <SelectTrigger className="col-span-3">
+                  <SelectValue placeholder="Select a customer" />
+                </SelectTrigger>
+                <SelectContent>
+                  {isUsersLoading ? (
+                    <SelectItem value="" disabled>
+                      Loading users...
+                    </SelectItem>
+                  ) : usersError ? (
+                    <SelectItem value="" disabled>
+                      Error loading users
+                    </SelectItem>
+                  ) : (
+                    usersData?.data.map((user: User) => (
+                      <SelectItem
+                        key={user.id}
+                        value={user.id.toString()}
+                      >
+                        {user.name} ({user.email})
+                      </SelectItem>
+                    ))
+                  )}
+                </SelectContent>
+              </Select>
+            </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="tableId" className="text-right">
                 Table
@@ -309,6 +360,26 @@ const ReservationManagementPage = () => {
                 }
                 className="col-span-3"
               />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="status" className="text-right">
+                Status
+              </Label>
+              <Select
+                value={createForm.status}
+                onValueChange={(value) =>
+                  setCreateForm({ ...createForm, status: value as ReservationStatus })
+                }
+              >
+                <SelectTrigger className="col-span-3">
+                  <SelectValue placeholder="Select status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={ReservationStatus.PENDING}>Pending</SelectItem>
+                  <SelectItem value={ReservationStatus.CONFIRMED}>Confirmed</SelectItem>
+                  <SelectItem value={ReservationStatus.CANCELLED}>Cancelled</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
           <DialogFooter>
@@ -399,22 +470,19 @@ const ReservationManagementPage = () => {
           <DialogHeader>
             <DialogTitle>Order Details</DialogTitle>
             <DialogDescription>
-              Details for order #{selectedReservation?.order?.orderId}
+              Details for order #{selectedReservation?.orderId}
             </DialogDescription>
           </DialogHeader>
-          {selectedReservation?.order && (
+          {selectedReservation?.orderId && (
             <div className="py-4 space-y-2">
               <p>
-                <strong>Order ID:</strong> {selectedReservation.order.orderId}
+                <strong>Order ID:</strong> {selectedReservation.orderId}
               </p>
               <p>
-                <strong>Total Amount:</strong> ${selectedReservation.order.totalAmount}
+                <strong>Total Amount:</strong> ${selectedReservation.totalAmount?.toFixed(2) || '0.00'}
               </p>
               <p>
-                <strong>Order Status:</strong> {selectedReservation.order.orderStatus}
-              </p>
-              <p>
-                <strong>Payment Status:</strong> {selectedReservation.order.paymentStatus}
+                <strong>Order Status:</strong> {selectedReservation.orderStatus || 'N/A'}
               </p>
             </div>
           )}

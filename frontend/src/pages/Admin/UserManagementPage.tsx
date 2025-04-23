@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import {
@@ -29,8 +30,9 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from '@/hooks/use-toast';
 import { Pencil, Trash2, Plus } from 'lucide-react';
 import { useCreateUserMutation, useDeleteUserMutation, useGetAllUsersQuery, useUpdateUserMutation } from '@/services/UserSerivces';
-import { User, UserRequest } from '@/interfaces/user';
+import { User, UserRequest, UserUpdate } from '@/interfaces/user';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { format } from 'date-fns';
 
 const UserManagementPage = () => {
   const { data: users, isLoading, error } = useGetAllUsersQuery();
@@ -42,13 +44,12 @@ const UserManagementPage = () => {
   const [isEdit, setIsEdit] = useState(false);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [formData, setFormData] = useState<UserRequest>({
-    id:undefined,
     name: "",
     email: "",
     password: "",
-    phone: "",
-    address: "",
-    role: "STAFF"
+    phone: null,
+    address: null,
+    role: "STAFF",
   });
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState<number | null>(null);
@@ -58,12 +59,12 @@ const UserManagementPage = () => {
       setIsEdit(true);
       setCurrentUser(user);
       setFormData({
-        id: user.id,
         name: user.name,
         email: user.email,
+        password: "",
         phone: user.phone,
         address: user.address,
-        role: user.role
+        role: user.role,
       });
     } else {
       setIsEdit(false);
@@ -72,21 +73,56 @@ const UserManagementPage = () => {
         name: "",
         email: "",
         password: "",
-        phone: "",
-        address: "",
-        role: "STAFF"
+        phone: null,
+        address: null,
+        role: "STAFF",
       });
     }
     setOpen(true);
   };
 
+  const validateForm = () => {
+    if (!formData.name) {
+      toast({
+        title: "Error",
+        description: "Name is required",
+        variant: "destructive",
+      });
+      return false;
+    }
+    if (!formData.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      toast({
+        title: "Error",
+        description: "Valid email is required",
+        variant: "destructive",
+      });
+      return false;
+    }
+    if (!isEdit && !formData.password) {
+      toast({
+        title: "Error",
+        description: "Password is required for new user",
+        variant: "destructive",
+      });
+      return false;
+    }
+    return true;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!validateForm()) return;
+
     try {
       if (isEdit && currentUser) {
-        await updateUser({ 
-          data: formData 
-        }).unwrap();
+        const updateData: UserUpdate = {
+          name: formData.name,
+          phone: formData.phone,
+          address: formData.address,
+          role: formData.role,
+          password: formData.password || undefined,
+        };
+        await updateUser({ id: currentUser.id.toString(), data: updateData }).unwrap();
         toast({
           title: "Success",
           description: "User updated successfully",
@@ -141,7 +177,7 @@ const UserManagementPage = () => {
     <div className="p-6 bg-white rounded-lg shadow max-w-7xl mx-auto">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">User Management</h1>
-        <Button 
+        <Button
           className="text-white"
           onClick={() => handleOpenDialog()}
         >
@@ -158,6 +194,7 @@ const UserManagementPage = () => {
               <TableHead className="font-medium text-center text-gray-500">Email</TableHead>
               <TableHead className="font-medium text-center text-gray-500">Phone</TableHead>
               <TableHead className="font-medium text-center text-gray-500">Role</TableHead>
+              <TableHead className="font-medium text-center text-gray-500">Created At</TableHead>
               <TableHead className="font-medium text-center text-gray-500">Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -166,12 +203,12 @@ const UserManagementPage = () => {
               <TableRow key={user.id}>
                 <TableCell>{user.name}</TableCell>
                 <TableCell>
-                    <Avatar className="h-10 w-10 border-2 border-[#60A5FA] shadow-[0_0_8px_#60A5FA] hover:scale-110 transition-transform">
-                        <AvatarImage src={user?.avatar_url} alt={user?.name} />
-                        <AvatarFallback className="bg-[#60A5FA] text-white">
-                            {user?.name?.charAt(0) || 'U'}
-                        </AvatarFallback>
-                    </Avatar>
+                  <Avatar className="h-10 w-10 border-2 border-[#60A5FA] shadow-[0_0_8px_#60A5FA] hover:scale-110 transition-transform">
+                    <AvatarImage src={user.avatarUrl ?? undefined} alt={user.name} />
+                    <AvatarFallback className="bg-[#60A5FA] text-white">
+                      {user.name.charAt(0) || 'U'}
+                    </AvatarFallback>
+                  </Avatar>
                 </TableCell>
                 <TableCell>{user.email}</TableCell>
                 <TableCell>{user.phone}</TableCell>
@@ -188,6 +225,9 @@ const UserManagementPage = () => {
                   >
                     {user.role}
                   </Badge>
+                </TableCell>
+                <TableCell>
+                  {format(new Date(user.createdAt), 'dd/MM/yyyy HH:mm')}
                 </TableCell>
                 <TableCell>
                   <div className="flex gap-2 justify-center">
@@ -254,34 +294,34 @@ const UserManagementPage = () => {
                   }
                   className="col-span-3"
                   required
+                  disabled={isEdit}
                 />
               </div>
-              {!isEdit && (
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="password" className="text-right">
-                    Password
-                  </Label>
-                  <Input
-                    id="password"
-                    type="password"
-                    value={formData.password}
-                    onChange={(e) =>
-                      setFormData({ ...formData, password: e.target.value })
-                    }
-                    className="col-span-3"
-                    required
-                  />
-                </div>
-              )}
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="password" className="text-right">
+                  Password
+                </Label>
+                <Input
+                  id="password"
+                  type="password"
+                  value={formData.password}
+                  onChange={(e) =>
+                    setFormData({ ...formData, password: e.target.value })
+                  }
+                  className="col-span-3"
+                  required={!isEdit}
+                  placeholder={isEdit ? "Leave blank to keep current password" : ""}
+                />
+              </div>
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="phone" className="text-right">
                   Phone
                 </Label>
                 <Input
                   id="phone"
-                  value={formData.phone}
+                  value={formData.phone ?? ""}
                   onChange={(e) =>
-                    setFormData({ ...formData, phone: e.target.value })
+                    setFormData({ ...formData, phone: e.target.value || null })
                   }
                   className="col-span-3"
                 />
@@ -292,9 +332,9 @@ const UserManagementPage = () => {
                 </Label>
                 <Input
                   id="address"
-                  value={formData.address}
+                  value={formData.address ?? ""}
                   onChange={(e) =>
-                    setFormData({ ...formData, address: e.target.value })
+                    setFormData({ ...formData, address: e.target.value || null })
                   }
                   className="col-span-3"
                 />
@@ -304,7 +344,7 @@ const UserManagementPage = () => {
                   Role
                 </Label>
                 <Select
-                  value={formData.role}
+                  value={formData.role ?? undefined}
                   onValueChange={(value) =>
                     setFormData({ ...formData, role: value })
                   }
