@@ -1,5 +1,6 @@
 package com.truong.backend.service;
 
+import com.truong.backend.dto.request.UserProfileDTO;
 import com.truong.backend.dto.request.UserRequestDTO;
 import com.truong.backend.dto.response.UserResponseDTO;
 import com.truong.backend.entity.User;
@@ -9,6 +10,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Optional;
@@ -19,11 +21,18 @@ public class UserService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
+    private final CloudinaryService cloudinaryService;
 
-    public UserService(UserRepository userRepository, UserMapper userMapper, PasswordEncoder passwordEncoder) {
+    public UserService(
+            UserRepository userRepository,
+            UserMapper userMapper,
+            PasswordEncoder passwordEncoder,
+            CloudinaryService cloudinaryService
+    ) {
         this.userRepository = userRepository;
         this.userMapper = userMapper;
         this.passwordEncoder = passwordEncoder;
+        this.cloudinaryService = cloudinaryService;
     }
 
     // Lấy tất cả người dùng
@@ -89,13 +98,23 @@ public class UserService {
     }
 
     // Cập nhật hồ sơ người dùng hiện tại
-    public UserResponseDTO updateUserProfile(UserRequestDTO request) {
+    public UserResponseDTO updateUserProfile(UserProfileDTO request, MultipartFile file) {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
-
-        // Cập nhật Entity từ DTO
-        userMapper.updateEntity(user, request, passwordEncoder);
+        if (file != null && !file.isEmpty()) {
+            String imageUrl = cloudinaryService.uploadImage(file, "avatar");
+           user.setAvatar_url(imageUrl);
+        }
+        if (request.getName() != null) {
+            user.setName(request.getName());
+        }
+        if (request.getAddress() != null) {
+            user.setAddress(request.getAddress());
+        }
+        if (request.getPhone() != null) {
+            user.setPhone(request.getPhone());
+        }
 
         // Lưu vào database
         User updatedUser = userRepository.save(user);

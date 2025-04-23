@@ -38,4 +38,5 @@ public interface UserMapper {
     @Mapping(target = "authorities", ignore = true)
     @Mapping(target = "password", expression = "java(request.getPassword() != null && !request.getPassword().isEmpty() ? passwordEncoder.encode(request.getPassword()) : user.getPassword())")
     void updateEntity(@MappingTarget User user, UserRequestDTO request, @Context PasswordEncoder passwordEncoder);
+
 }
