@@ -1,6 +1,6 @@
 package com.truong.backend.dto.request;
 
-import com.truong.backend.entity.Role;
+import com.truong.backend.entity.enums.Role;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 

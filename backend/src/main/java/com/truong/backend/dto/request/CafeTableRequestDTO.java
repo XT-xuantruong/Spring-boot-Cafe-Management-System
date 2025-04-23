@@ -1,6 +1,6 @@
 package com.truong.backend.dto.request;
 
-import com.truong.backend.entity.TableStatus;
+import com.truong.backend.entity.enums.TableStatus;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
