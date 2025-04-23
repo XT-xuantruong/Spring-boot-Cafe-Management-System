@@ -1,6 +1,4 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
-// import { useSelector } from 'react-redux';
-// import { RootState } from '@/stores';
 import { privateRoutes, publicRoutes, } from '@/routes';
 import './App.css';
 import NotFoundPage from './pages/NotFoundPage';
@@ -24,7 +22,7 @@ const ProtectedRoute = ({ children, isAdminRoute = false }: { children: React.Re
   }
 
   // Nếu không phải admin route, chỉ kiểm tra xác thực
-  return isAuthenticated ? children : <Navigate to="/" replace />;
+  return isAuthenticated ? children : <Navigate to="/login" replace />;
 };
 
 export default function App() {

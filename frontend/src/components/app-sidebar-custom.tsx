@@ -164,7 +164,7 @@ export function AppSidebarCustom({ ...props }: React.ComponentProps<typeof Sideb
   const info = {
     name: user?.name || "Guest",
     email: user?.email || "guest@example.com",
-    avatar: user?.avatar_url || "/avatars/default.jpg",
+    avatar: user?.avatarUrl || "/avatars/default.jpg",
   };
   return (
     <Sidebar collapsible="offcanvas" {...props}>

@@ -10,14 +10,26 @@ import TableManagentsPage from "@/pages/Admin/TableManagentsPage";
 import UserManagementPage from "@/pages/Admin/UserManagementPage";
 import LoginPage from "@/pages/Auth/LoginPage";
 import RegisterPage from "@/pages/Auth/RegisterPage";
-import HomePage from "@/pages/HomePage";
+import HomePage from "@/pages/User/HomePage";
+import MyAccountPage from "@/pages/User/MyAccountPage";
+import ReservationPage from "@/pages/User/ReservationPage";
 
 export const publicRoutes = [
-  { path: "/", component: HomePage, layout: UserLayout },
   { path: "/login", component: LoginPage, layout: AuthLayout },
   { path: "/register", component: RegisterPage, layout: AuthLayout },
 ];
 export const privateRoutes = [
+  { path: "/", component: HomePage, layout: UserLayout },
+  {
+    path: "/reservation",
+    component: ReservationPage,
+    layout: UserLayout,
+  },
+  {
+    path: "/profile",
+    component: MyAccountPage,
+    layout: UserLayout,
+  },
   { path: "/admin/dashboard", component: DashBoard, layout: AdminLayout },
   {
     path: "/admin/table",

@@ -43,8 +43,9 @@ public class PaymentController {
     }
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_STAFF')")
-    public ResponseEntity<ApiResponse<PaymentResponseDTO>> processPayment(@RequestBody @Valid PaymentRequestDTO paymentRequest) {
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_STAFF','ROLE_CUSTOMER')")
+    public ResponseEntity<ApiResponse<PaymentResponseDTO>> processPayment(
+            @RequestBody @Valid PaymentRequestDTO paymentRequest) {
         try {
             PaymentResponseDTO response = paymentService.processPayment(paymentRequest);
             return ResponseEntity.ok(new ApiResponse<>("success", "Payment processed successfully", response));
@@ -58,7 +59,7 @@ public class PaymentController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_STAFF')")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_STAFF','ROLE_CUSTOMER')")
     public ResponseEntity<ApiResponse<PaymentResponseDTO>> updatePaymentStatus(
             @PathVariable Long id,
             @RequestBody @Valid String paymentStatus) {

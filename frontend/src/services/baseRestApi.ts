@@ -14,6 +14,7 @@ const baseQuery = fetchBaseQuery({
   prepareHeaders: (headers, { getState }) => {
     const state = getState() as RootState;
     const accessToken = state.auth.token?.accessToken;
+    console.log("prepareHeaders accessToken:", accessToken);
     if (accessToken) {
       headers.set("Authorization", `Bearer ${accessToken}`);
     }
@@ -35,7 +36,7 @@ const baseQueryWithReauth: BaseQueryFn<
         {
           url: "auth/refresh",
           method: "POST",
-          body: { refresh: refreshToken },
+          body: refreshToken,
         },
         api,
         extraOptions

@@ -39,6 +39,11 @@ export const authServices = baseRestApi.injectEndpoints({
               refreshToken: authData.data.refreshToken,
             } as { accessToken: string; refreshToken: string })
           );
+          // Verify state update
+          const state = store.getState() as RootState;
+          if (!state.auth.token?.accessToken) {
+            throw new Error("Failed to update tokens in state");
+          }
           const meResult = await dispatch(
             userServices.endpoints.getMe.initiate(undefined)
           ).unwrap();
@@ -52,6 +57,7 @@ export const authServices = baseRestApi.injectEndpoints({
           console.error("Login failed:", error);
         }
       },
+      invalidatesTags: ["Users"],
     }),
     register: builder.mutation<
       { data: User; message: string; status: number },
@@ -117,10 +123,7 @@ export const authServices = baseRestApi.injectEndpoints({
       query: () => ({
         url: `${entity}/logout`,
         method: "POST",
-        body: {
-          refreshToken: (store.getState() as RootState).auth.token
-            ?.refreshToken,
-        },
+        body: (store.getState() as RootState).auth.token?.refreshToken,
       }),
       transformResponse: (response: ApiResponse<any>) => ({
         data: response.data,
@@ -131,10 +134,12 @@ export const authServices = baseRestApi.injectEndpoints({
         try {
           await queryFulfilled;
           dispatch(logout());
+          dispatch(baseRestApi.util.resetApiState());
         } catch (error) {
           console.error("Logout failed:", error);
         }
       },
+      invalidatesTags: ["Users"],
     }),
   }),
 });

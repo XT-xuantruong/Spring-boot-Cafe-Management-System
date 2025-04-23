@@ -55,8 +55,8 @@ public class SecurityConfig {
                         // Table endpoints
                         .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/tables").hasAuthority("ROLE_ADMIN")
                         .requestMatchers(org.springframework.http.HttpMethod.PUT, "/api/tables/**").hasAuthority("ROLE_ADMIN")
-                        .requestMatchers(org.springframework.http.HttpMethod.DELETE, "/api/tables/**").hasAuthority("ROLE_ADMIN")
-                        .requestMatchers("/api/tables").hasAnyAuthority("ROLE_ADMIN", "ROLE_STAFF")
+                        .requestMatchers(org.springframework.http.HttpMethod.DELETE, "/api/tables/**").hasAnyAuthority("ROLE_ADMIN","ROLE_STAFF")
+                        .requestMatchers("/api/tables").hasAnyAuthority("ROLE_ADMIN", "ROLE_STAFF","ROLE_CUSTOMER")
                         .requestMatchers("/api/tables/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_STAFF")
                         // Reservation endpoints
                         .requestMatchers("/api/reservations/customer").hasAuthority("ROLE_CUSTOMER")
@@ -65,29 +65,26 @@ public class SecurityConfig {
                         .requestMatchers(org.springframework.http.HttpMethod.DELETE, "/api/reservations/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_STAFF", "ROLE_CUSTOMER")
                         .requestMatchers("/api/reservations").hasAnyAuthority("ROLE_ADMIN", "ROLE_STAFF")
                         .requestMatchers("/api/reservations/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_STAFF")
-
-
                         // Menu Item endpoints
-
                         .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/menu-items").hasAuthority("ROLE_ADMIN")
                         .requestMatchers(org.springframework.http.HttpMethod.PUT, "/api/menu-items/**").hasAuthority("ROLE_ADMIN")
                         .requestMatchers(org.springframework.http.HttpMethod.DELETE, "/api/menu-items/**").hasAuthority("ROLE_ADMIN")
-                        .requestMatchers("/api/menu-items").permitAll()
-                        .requestMatchers("/api/menu-items/**").permitAll()
+                        .requestMatchers("/api/menu-items").hasAnyAuthority("ROLE_ADMIN", "ROLE_STAFF", "ROLE_CUSTOMER")
+                        .requestMatchers("/api/menu-items/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_STAFF", "ROLE_CUSTOMER")
                         // Order endpoints
                         .requestMatchers("/api/orders/customer").hasAuthority("ROLE_CUSTOMER")
                         .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/orders").hasAnyAuthority("ROLE_ADMIN", "ROLE_STAFF", "ROLE_CUSTOMER")
                         .requestMatchers(org.springframework.http.HttpMethod.PUT, "/api/orders/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_STAFF")
                         .requestMatchers(org.springframework.http.HttpMethod.DELETE, "/api/orders/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_STAFF")
                         .requestMatchers("/api/orders").hasAnyAuthority("ROLE_ADMIN", "ROLE_STAFF")
-                        .requestMatchers("/api/orders/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_STAFF")
+                        .requestMatchers("/api/orders/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_STAFF", "ROLE_CUSTOMER")
 
                         // Payment endpoints
                         .requestMatchers("/api/payments").hasAnyAuthority("ROLE_ADMIN", "ROLE_STAFF")
                         .requestMatchers("/api/payments/order/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_STAFF", "ROLE_CUSTOMER")
                         .requestMatchers("/api/payments/customer").hasAuthority("ROLE_CUSTOMER")
-                        .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/payments").hasAnyAuthority("ROLE_ADMIN", "ROLE_STAFF")
-                        .requestMatchers(org.springframework.http.HttpMethod.PUT, "/api/payments/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_STAFF")
+                        .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/payments").hasAnyAuthority("ROLE_ADMIN", "ROLE_STAFF","ROLE_CUSTOMER")
+                        .requestMatchers(org.springframework.http.HttpMethod.PUT, "/api/payments/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_STAFF","ROLE_CUSTOMER")
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
 

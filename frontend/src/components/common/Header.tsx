@@ -52,7 +52,7 @@ export default function Header() {
                   aria-label="Profile"
                 >
                   <Avatar className="h-10 w-10 border-2 border-[#60A5FA] shadow-[0_0_8px_#60A5FA] hover:scale-110 transition-transform">
-                    <AvatarImage src={user?.avatar_url} alt={user?.name} />
+                    <AvatarImage src={user?.avatarUrl || ""} alt={user?.name} />
                     <AvatarFallback className="bg-[#60A5FA] text-white">
                       {user?.name?.charAt(0) || 'U'}
                     </AvatarFallback>
@@ -62,7 +62,7 @@ export default function Header() {
               <DropdownMenuContent className="w-56 z-[60] bg-white" align="end">
                 <DropdownMenuLabel className="text-[#1E3A8A]">My Account</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <MenuItem to={`/profile/${user?.id || ''}`} label="Profile" />
+                <MenuItem to={`/profile`} label="Profile" />
                 <DropdownMenuSeparator />
                 <MenuItem to="/login" label="Logout" onClick={handleLogout} />
               </DropdownMenuContent>
