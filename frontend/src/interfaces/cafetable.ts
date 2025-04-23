@@ -1,8 +1,10 @@
+import { TableStatus } from "@/enums/tableStatus";
+
 export interface CafeTable {
   tableId: number;
   tableNumber: string;
   capacity: number; // Sức chứa
-  status: string; //  AVAILABLE, OCCUPIED, RESERVED
+  status: TableStatus; //  AVAILABLE, OCCUPIED, RESERVED
   createdAt: string;
   updatedAt: string;
 }
@@ -10,11 +12,5 @@ export interface CafeTable {
 export interface CafeTableRequest {
   tableNumber: string;
   capacity: number;
-  status?: string;
-}
-
-export enum TableStatus {
-  AVAILABLE = "AVAILABLE",
-  RESERVED = "RESERVED",
-  OCCUPIED = "OCCUPIED",
+  status?: TableStatus;
 }
