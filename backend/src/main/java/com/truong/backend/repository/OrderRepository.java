@@ -18,9 +18,6 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     // Lấy danh sách đơn hàng theo trạng thái
     List<Order> findByOrderStatus(OrderStatus orderStatus);
 
-    // Lấy danh sách đơn hàng theo trạng thái thanh toán
-    List<Order> findByPaymentStatus(PaymentStatus paymentStatus);
-
     // Lấy danh sách đơn hàng trong khoảng thời gian (dùng cho báo cáo Admin)
     @Query("SELECT o FROM Order o WHERE o.createdAt BETWEEN :startDate AND :endDate")
     List<Order> findByCreatedAtBetween(LocalDateTime startDate, LocalDateTime endDate);
