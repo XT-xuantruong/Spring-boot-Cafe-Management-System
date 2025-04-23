@@ -1,6 +1,8 @@
 package com.truong.backend.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.truong.backend.entity.enums.OrderStatus;
+import com.truong.backend.entity.enums.PaymentStatus;
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;

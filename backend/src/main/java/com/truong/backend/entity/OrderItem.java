@@ -26,11 +26,11 @@ public class OrderItem {
     @Column(nullable = false)
     private Double subtotal;
 
+    // Constructors
     public OrderItem() {
     }
 
-    public OrderItem(Long orderItemId, Order order, MenuItem item, Integer quantity, Double unitPrice, Double subtotal) {
-        this.orderItemId = orderItemId;
+    public OrderItem(Order order, MenuItem item, Integer quantity, Double unitPrice, Double subtotal) {
         this.order = order;
         this.item = item;
         this.quantity = quantity;
@@ -38,6 +38,7 @@ public class OrderItem {
         this.subtotal = subtotal;
     }
 
+    // Getters and Setters
     public Long getOrderItemId() {
         return orderItemId;
     }

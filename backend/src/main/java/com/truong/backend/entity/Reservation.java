@@ -1,5 +1,6 @@
 package com.truong.backend.entity;
 
+import com.truong.backend.entity.enums.ReservationStatus;
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
