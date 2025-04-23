@@ -260,7 +260,7 @@ const TableManagementPage = () => {
                   <Select
                     value={formData.status}
                     onValueChange={(value) =>
-                      setFormData({ ...formData, status: value })
+                      setFormData({ ...formData, status: value as TableStatus })
                     }
                   >
                     <SelectTrigger className="col-span-3">

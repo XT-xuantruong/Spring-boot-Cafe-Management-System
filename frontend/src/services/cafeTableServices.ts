@@ -29,7 +29,7 @@ export const cafeTableServices = baseRestApi.injectEndpoints({
         data: response.data,
         message: response.message,
       }),
-      providesTags: (result, error, id) => [{ type: "CafeTables", id }], // Cache theo ID
+      providesTags: (_result, _error, id) => [{ type: "CafeTables", id }], // Cache theo ID
     }),
 
     // Tạo bàn mới
@@ -63,7 +63,7 @@ export const cafeTableServices = baseRestApi.injectEndpoints({
         data: response.data,
         message: response.message,
       }),
-      invalidatesTags: (result, error, { id }) => [
+      invalidatesTags: (_result, _error, { id }) => [
         "CafeTables",
         { type: "CafeTables", id },
       ], // Làm mới danh sách và bàn cụ thể

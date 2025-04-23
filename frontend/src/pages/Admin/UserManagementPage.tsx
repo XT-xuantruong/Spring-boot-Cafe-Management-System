@@ -206,7 +206,7 @@ const UserManagementPage = () => {
                   <Avatar className="h-10 w-10 border-2 border-[#60A5FA] shadow-[0_0_8px_#60A5FA] hover:scale-110 transition-transform">
                     <AvatarImage src={user.avatarUrl ?? undefined} alt={user.name} />
                     <AvatarFallback className="bg-[#60A5FA] text-white">
-                      {user.name.charAt(0) || 'U'}
+                      {user.name || 'U'}
                     </AvatarFallback>
                   </Avatar>
                 </TableCell>
