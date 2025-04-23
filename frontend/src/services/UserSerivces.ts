@@ -25,7 +25,7 @@ export const userServices = baseRestApi.injectEndpoints({
       query: ({ data, file }) => {
         const formData = new FormData();
         if (file) {
-          formData.append("avatarUrl", file); // Đổi từ "avatar" sang "avatarUrl" để khớp với backend
+          formData.append("file", file);
         }
         Object.entries(data).forEach(([key, value]) => {
           if (value !== undefined && value !== null) {
@@ -77,7 +77,7 @@ export const userServices = baseRestApi.injectEndpoints({
         data: response.data,
         message: response.message,
       }),
-      providesTags: (result, error, id) => [{ type: "Users", id }],
+      providesTags: (_result, _error, id) => [{ type: "Users", id }],
     }),
     createUser: builder.mutation<{ data: User; message: string }, UserRequest>({
       query: (data) => ({
