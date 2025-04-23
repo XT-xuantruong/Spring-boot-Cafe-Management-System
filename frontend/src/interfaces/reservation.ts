@@ -1,41 +1,17 @@
-import { CafeTable } from "./cafetable";
-import { User } from "./user";
+import { OrderStatus } from "@/enums/orderStatus";
+import { ReservationStatus } from "@/enums/reservationStatus";
 
 export interface Reservation {
   reservationId: number;
-  user: User;
-  cafeTable: CafeTable;
+  userId: number;
+  userName: string;
+  tableId: number;
+  tableNumber: string;
   reservationTime: string;
   status: ReservationStatus;
+  orderId?: number;
+  totalAmount?: number;
+  orderStatus?: OrderStatus;
   createdAt: string;
   updatedAt: string;
-  order?: Order;
-}
-
-export interface Order {
-  orderId: number;
-  totalAmount: number;
-  orderStatus: OrderStatus;
-  paymentStatus: PaymentStatus;
-}
-
-export enum ReservationStatus {
-  PENDING = "PENDING",
-  CONFIRMED = "CONFIRMED",
-  CANCELLED = "CANCELLED",
-}
-
-export enum OrderStatus {
-  PENDING = "PENDING",
-  PREPARING = "PREPARING",
-  SERVED = "SERVED",
-  COMPLETED = "COMPLETED",
-  CANCELLED = "CANCELLED",
-}
-
-export enum PaymentStatus {
-  UNPAID = "UNPAID",
-  PARTIALLY_PAID = "PARTIALLY_PAID",
-  PAID = "PAID",
-  CANCELLED = "CANCELLED",
 }
