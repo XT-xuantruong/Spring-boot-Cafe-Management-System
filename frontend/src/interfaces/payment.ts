@@ -12,3 +12,10 @@ export interface Payment {
   createdAt: string;
   updatedAt: string;
 }
+
+export interface PaymentRequest {
+  orderId: number;
+  amount: number;
+  paymentMethod: string;
+  transactionId?: string;
+}
