@@ -39,7 +39,7 @@ public class OrderController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_STAFF')")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_STAFF','ROLE_CUSTOMER')")
     public ResponseEntity<ApiResponse<OrderResponseDTO>> getOrderById(@PathVariable Long id) {
         OrderResponseDTO order = orderService.getOrderById(id);
         return ResponseEntity.ok(

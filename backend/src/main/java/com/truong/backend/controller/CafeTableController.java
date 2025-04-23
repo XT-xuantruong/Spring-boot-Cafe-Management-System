@@ -21,7 +21,7 @@ public class CafeTableController {
 
     // Lấy danh sách bàn (Admin, Staff)
     @GetMapping()
-    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_STAFF')")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_STAFF','ROLE_CUSTOMER')")
     public ResponseEntity<ApiResponse<List<CafeTable>>> getTablesByStatus(
             @RequestParam(required = false) TableStatus status
     ) {
@@ -70,7 +70,7 @@ public class CafeTableController {
     }
     // Cập nhật thông tin bàn (Admin)
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN','ROLE_STAFF')")
     public ResponseEntity<ApiResponse<CafeTable>> updateTable(
             @PathVariable Long id,
             @RequestBody CafeTableRequestDTO request

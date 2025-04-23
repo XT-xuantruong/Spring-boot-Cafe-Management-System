@@ -1,5 +1,6 @@
 package com.truong.backend.controller;
 
+import com.truong.backend.dto.request.UserProfileDTO;
 import com.truong.backend.dto.request.UserRequestDTO;
 import com.truong.backend.dto.response.ApiResponse;
 import com.truong.backend.dto.response.UserResponseDTO;
@@ -8,6 +9,7 @@ import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -27,11 +29,17 @@ public class UserController {
                 "success", "Profile retrieved successfully", userResponse));
     }
 
-    @PutMapping("/profile")
+    @PutMapping(value = "/profile", consumes = {"multipart/form-data"})
     public ResponseEntity<ApiResponse<UserResponseDTO>> updateProfile(
-            @Valid @RequestBody UserRequestDTO request
+            @RequestPart(value = "name",required = false) @Valid String name,
+            @RequestPart(value = "phone",required = false) @Valid String phone,
+            @RequestPart(value = "address",required = false) @Valid String address,
+            @RequestPart(value = "file", required = false) MultipartFile file
     ) {
-        UserResponseDTO updatedUser = userService.updateUserProfile(request);
+        UserProfileDTO request = new UserProfileDTO(
+                name, phone, address
+        );
+        UserResponseDTO updatedUser = userService.updateUserProfile(request, file);
         return ResponseEntity.ok(
                 new ApiResponse<>(
                         "success",
