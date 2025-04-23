@@ -6,7 +6,7 @@ import com.truong.backend.dto.request.UserRequestDTO;
 import com.truong.backend.dto.response.ApiResponse;
 import com.truong.backend.dto.response.AuthResponse;
 import com.truong.backend.entity.RefreshToken;
-import com.truong.backend.entity.Role;
+import com.truong.backend.entity.enums.Role;
 import com.truong.backend.entity.User;
 import com.truong.backend.repository.UserRepository;
 import com.truong.backend.service.CustomUserDetailsService;
