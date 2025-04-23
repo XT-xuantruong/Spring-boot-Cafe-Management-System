@@ -2,7 +2,7 @@
 //
 //import com.truong.backend.entity.Order;
 //import com.truong.backend.entity.Payment;
-//import com.truong.backend.entity.PaymentStatus;
+//import com.truong.backend.entity.enums.PaymentStatus;
 //import com.truong.backend.repository.OrderRepository;
 //import com.truong.backend.repository.PaymentRepository;
 //import org.springframework.beans.factory.annotation.Autowired;

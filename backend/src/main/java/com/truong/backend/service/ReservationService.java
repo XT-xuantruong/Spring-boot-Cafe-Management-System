@@ -2,6 +2,10 @@ package com.truong.backend.service;
 
 import com.truong.backend.dto.response.ReservationResponseDTO;
 import com.truong.backend.entity.*;
+import com.truong.backend.entity.enums.OrderStatus;
+import com.truong.backend.entity.enums.PaymentStatus;
+import com.truong.backend.entity.enums.ReservationStatus;
+import com.truong.backend.entity.enums.TableStatus;
 import com.truong.backend.mapper.ReservationMapper;
 import com.truong.backend.repository.CafeTableRepository;
 import com.truong.backend.repository.OrderRepository;
@@ -85,7 +89,7 @@ public class ReservationService {
         Reservation reservation = reservationRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Reservation not found with ID: " + id));
         reservation.setStatus(status);
-        if (reservation.getStatus().equals(ReservationStatus.CANCELLED)) {
+        if (status == ReservationStatus.CANCELLED) {
             cafeTableService.updateTableStatus(reservation.getCafeTable().getTableId(), TableStatus.AVAILABLE);
         }
         Reservation updatedReservation = reservationRepository.save(reservation);
@@ -98,7 +102,10 @@ public class ReservationService {
         reservation.setStatus(ReservationStatus.CANCELLED);
         List<Order> relatedOrders = orderRepository.findByReservationReservationId(id);
         relatedOrders.forEach(order -> {
+            order.setOrderStatus(OrderStatus.CANCELLED);
+            order.getPayment().setPaymentStatus(PaymentStatus.CANCELLED);
             order.setReservation(null);
+            cafeTableService.updateTableStatus(order.getTable().getTableId(), TableStatus.AVAILABLE);
             orderRepository.save(order);
         });
         cafeTableService.updateTableStatus(reservation.getCafeTable().getTableId(), TableStatus.AVAILABLE);
@@ -107,10 +114,9 @@ public class ReservationService {
 
     private ReservationResponseDTO mapWithOrder(Reservation reservation) {
         ReservationResponseDTO dto = reservationMapper.toResponseDTO(reservation);
-        // Truy vấn Order liên quan đến Reservation
         List<Order> relatedOrders = orderRepository.findByReservationReservationId(reservation.getReservationId());
         if (!relatedOrders.isEmpty()) {
-            Order order = relatedOrders.get(0); // Lấy Order đầu tiên (giả định 1 Reservation có tối đa 1 Order)
+            Order order = relatedOrders.get(0); // Giả định 1 Reservation có tối đa 1 Order
             dto.setOrderId(order.getOrderId());
             dto.setTotalAmount(order.getTotalAmount());
             dto.setOrderStatus(order.getOrderStatus());
