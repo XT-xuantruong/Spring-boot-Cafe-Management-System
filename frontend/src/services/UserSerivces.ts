@@ -1,7 +1,6 @@
 import { baseRestApi } from "./baseRestApi";
 import { UserUpdate, User, UserRequest } from "@/interfaces/user";
 import { ApiResponse } from "@/interfaces/apiResponse";
-// import { RootState } from '@/stores';
 import { setUser } from "@/stores/authSlice";
 
 const entity = "users";
@@ -26,11 +25,11 @@ export const userServices = baseRestApi.injectEndpoints({
       query: ({ data, file }) => {
         const formData = new FormData();
         if (file) {
-          formData.append("avatar", file);
+          formData.append("avatarUrl", file); // Đổi từ "avatar" sang "avatarUrl" để khớp với backend
         }
         Object.entries(data).forEach(([key, value]) => {
-          if (value !== undefined) {
-            formData.append(key, value);
+          if (value !== undefined && value !== null) {
+            formData.append(key, value.toString());
           }
         });
 
@@ -47,19 +46,16 @@ export const userServices = baseRestApi.injectEndpoints({
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         try {
           const { data } = await queryFulfilled;
-          // const state = getState() as RootState;
-          // const accessToken = state.auth.token?.accessToken || '';
-          // const refreshToken = state.auth.token?.refreshToken || '';
-
           dispatch(
             setUser({
               user: data.data,
             })
           );
         } catch (error) {
-          console.error("Update user failed:", error);
+          console.error("Update profile failed:", error);
         }
       },
+      invalidatesTags: ["Users"],
     }),
     getAllUsers: builder.query<{ data: User[]; message: string }, void>({
       query: () => ({
@@ -87,7 +83,15 @@ export const userServices = baseRestApi.injectEndpoints({
       query: (data) => ({
         url: `${entity}`,
         method: "POST",
-        body: data,
+        body: {
+          email: data.email,
+          password: data.password,
+          name: data.name,
+          phone: data.phone ?? null,
+          address: data.address ?? null,
+          avatarUrl: data.avatarUrl ?? null,
+          role: data.role,
+        },
       }),
       transformResponse: (response: ApiResponse<User>) => ({
         data: response.data,
@@ -95,23 +99,28 @@ export const userServices = baseRestApi.injectEndpoints({
       }),
       invalidatesTags: ["Users"],
     }),
-
     updateUser: builder.mutation<
       { data: User; message: string },
-      { data: UserRequest }
+      { id: string; data: UserUpdate }
     >({
-      query: ({ data }) => ({
-        url: `${entity}`,
+      query: ({ id, data }) => ({
+        url: `${entity}/${id}`,
         method: "PUT",
-        body: data,
+        body: {
+          name: data.name,
+          phone: data.phone ?? null,
+          address: data.address ?? null,
+          avatarUrl: data.avatarUrl ?? null,
+          role: data.role,
+          password: data.password,
+        },
       }),
       transformResponse: (response: ApiResponse<User>) => ({
         data: response.data,
         message: response.message,
       }),
-      invalidatesTags: ["Users"], // Làm mới danh sách và bàn cụ thể
+      invalidatesTags: ["Users"],
     }),
-
     deleteUser: builder.mutation<{ message: string }, string>({
       query: (id) => ({
         url: `${entity}/${id}`,
@@ -124,6 +133,7 @@ export const userServices = baseRestApi.injectEndpoints({
     }),
   }),
 });
+
 export const {
   useGetMeQuery,
   useUpdateProfileMutation,

@@ -1,9 +1,8 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { baseRestApi } from "./baseRestApi";
 import { Reservation } from "@/interfaces/reservation";
 import { ApiResponse } from "@/interfaces/apiResponse";
-import { ReservationStatus } from "@/interfaces/reservation";
 import { CafeTable } from "@/interfaces/cafetable";
+import { ReservationStatus } from "@/enums/reservationStatus";
 
 const entity = "reservations";
 
@@ -36,7 +35,7 @@ export const reservationServices = baseRestApi.injectEndpoints({
         data: response.data,
         message: response.message,
       }),
-      providesTags: (result, error, id) => [{ type: "Reservations", id }],
+      providesTags: (_result, _error, id) => [{ type: "Reservations", id }],
     }),
 
     getReservationsByUser: builder.query<
@@ -73,7 +72,12 @@ export const reservationServices = baseRestApi.injectEndpoints({
 
     createReservation: builder.mutation<
       { data: Reservation; message: string },
-      { tableId: number; reservationTime: string }
+      {
+        userId: number;
+        tableId: number;
+        reservationTime: string;
+        status: ReservationStatus;
+      }
     >({
       query: (body) => ({
         url: `${entity}`,
@@ -84,7 +88,7 @@ export const reservationServices = baseRestApi.injectEndpoints({
         data: response.data,
         message: response.message,
       }),
-      invalidatesTags: ["Reservations"],
+      invalidatesTags: ["Reservations", "CafeTables"],
     }),
 
     updateReservationStatus: builder.mutation<
@@ -100,7 +104,7 @@ export const reservationServices = baseRestApi.injectEndpoints({
         data: response.data,
         message: response.message,
       }),
-      invalidatesTags: (result, error, { id }) => [
+      invalidatesTags: (_result, _error, { id }) => [
         "Reservations",
         { type: "Reservations", id },
       ],
@@ -114,7 +118,7 @@ export const reservationServices = baseRestApi.injectEndpoints({
       transformResponse: (response: ApiResponse<null>) => ({
         message: response.message,
       }),
-      invalidatesTags: ["Reservations"],
+      invalidatesTags: ["Reservations", "CafeTables"],
     }),
   }),
 });
