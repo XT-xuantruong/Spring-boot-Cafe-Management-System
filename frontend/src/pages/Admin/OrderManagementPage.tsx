@@ -49,16 +49,17 @@ import {
 } from "lucide-react";
 import { useSelector } from 'react-redux';
 import { RootState } from '@/stores';
-import { useGetAllReservationsQuery, useGetAvailableTablesQuery } from '@/services/reservationServices';
+import { useGetAllReservationsQuery } from '@/services/reservationServices';
 import { useGetAllMenuItemsQuery } from '@/services/menuItemServices';
 import { toast } from '@/hooks/use-toast';
 import { v4 as uuidv4 } from "uuid";
 import { PaymentMethod } from '../../enums/paymentMethod';
+import { useGetAllTablesQuery } from '@/services/cafeTableServices';
 
 const OrderManagementPage: React.FC = () => {
   const userId = useSelector((state: RootState) => state.auth.user?.id);
   const { data: ordersResponse, isLoading, error } = useGetAllOrdersQuery();
-  const { data: cafeTable, isLoading: isCafeTableLoading } = useGetAvailableTablesQuery();
+  const { data: cafeTable, isLoading: isCafeTableLoading } = useGetAllTablesQuery();
   const { data: reservation, isLoading: isReservationLoading } = useGetAllReservationsQuery();
   const { data: menuItemsResponse, isLoading: isMenuItemsLoading } = useGetAllMenuItemsQuery();
   const [updateOrderStatus] = useUpdateOrderStatusMutation();

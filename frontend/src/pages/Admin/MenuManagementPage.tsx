@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useState } from 'react';
 import { 
   useGetAllMenuItemsQuery, 
@@ -27,8 +28,12 @@ import {
 } from "@/components/ui/table";
 import { toast } from '@/hooks/use-toast';
 import { Pencil, Trash2, Plus } from 'lucide-react';
+import { useSelector } from 'react-redux';
+import { User } from '@/interfaces/user';
+import { RootState } from '@/stores';
 
 const MenuManagementPage = () => {
+  const user = useSelector((state: RootState) => state.auth.user as User | null);
   const { data: menuItems, isLoading, error } = useGetAllMenuItemsQuery();
   const [createMenuItem] = useCreateMenuItemMutation();
   const [updateMenuItem] = useUpdateMenuItemMutation();
@@ -127,6 +132,7 @@ const MenuManagementPage = () => {
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Menu Management</h1>
         <Button 
+          disabled={user?.role==="STAFF"}
           className="bg-black text-white hover:bg-gray-800"
           onClick={() => handleOpenDialog()}
         >
@@ -165,6 +171,7 @@ const MenuManagementPage = () => {
                 <TableCell>
                   <div className="flex gap-2">
                     <Button
+                    disabled={user?.role==="STAFF"}
                       variant="outline"
                       size="sm"
                       onClick={() => handleOpenDialog(item)}
@@ -172,6 +179,7 @@ const MenuManagementPage = () => {
                       <Pencil className="h-4 w-4" />
                     </Button>
                     <Button
+                    disabled={user?.role==="STAFF"}
                       variant="outline"
                       size="sm"
                       onClick={() => handleDelete(item.itemId)}

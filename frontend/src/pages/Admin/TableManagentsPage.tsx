@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useState } from 'react';
 import { 
   useGetAllTablesQuery, 
@@ -35,9 +36,14 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { toast } from '@/hooks/use-toast';
 import { Pencil, Trash2, Plus } from 'lucide-react';
+import { User } from '@/interfaces/user';
+import { RootState } from '@/stores';
+import { useSelector } from 'react-redux';
+import { TableStatus } from '@/enums/tableStatus';
 
 const TableManagementPage = () => {
   const { data: tables, isLoading, error } = useGetAllTablesQuery();
+  const user = useSelector((state: RootState) => state.auth.user as User | null);
   const [createTable] = useCreateTableMutation();
   const [updateTable] = useUpdateTableMutation();
   const [deleteTable] = useDeleteTableMutation();
@@ -48,7 +54,7 @@ const TableManagementPage = () => {
   const [formData, setFormData] = useState<CafeTableRequest>({
     tableNumber: '',
     capacity: 0,
-    status: 'AVAILABLE',
+    status: TableStatus.AVAILABLE,
   });
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [tableToDelete, setTableToDelete] = useState<number | null>(null);
@@ -64,7 +70,7 @@ const TableManagementPage = () => {
       });
     } else {
       setIsEdit(false);
-      setFormData({ tableNumber: '', capacity: 0, status: 'AVAILABLE' });
+      setFormData({ tableNumber: '', capacity: 0, status: TableStatus.AVAILABLE });
     }
     setOpen(true);
   };
@@ -132,6 +138,7 @@ const TableManagementPage = () => {
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold ">Table Management</h1>
         <Button 
+          disabled={user?.role==="STAFF"}
           className=" text-white"
           onClick={() => handleOpenDialog()}
         >
@@ -182,6 +189,7 @@ const TableManagementPage = () => {
                       <Pencil className="h-4 w-4" />
                     </Button>
                     <Button
+                      disabled={user?.role==="STAFF"}
                       variant="outline"
                       size="sm"
                       onClick={() => handleOpenDeleteDialog(table.tableId)}
@@ -259,9 +267,9 @@ const TableManagementPage = () => {
                       <SelectValue placeholder="Select status" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="AVAILABLE">Available</SelectItem>
-                      <SelectItem value="OCCUPIED">Occupied</SelectItem>
-                      <SelectItem value="RESERVED">Reserved</SelectItem>
+                      <SelectItem value={TableStatus.AVAILABLE}>Available</SelectItem>
+                      <SelectItem value={TableStatus.OCCUPIED}>Occupied</SelectItem>
+                      <SelectItem value={TableStatus.RESERVED}>Reserved</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
