@@ -117,10 +117,7 @@ export const authServices = baseRestApi.injectEndpoints({
       query: () => ({
         url: `${entity}/logout`,
         method: "POST",
-        body: {
-          refreshToken: (store.getState() as RootState).auth.token
-            ?.refreshToken,
-        },
+        body: (store.getState() as RootState).auth.token?.refreshToken,
       }),
       transformResponse: (response: ApiResponse<any>) => ({
         data: response.data,
