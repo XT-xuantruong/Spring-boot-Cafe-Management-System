@@ -1,7 +1,7 @@
 package com.truong.backend.dto.response;
 
-import com.truong.backend.entity.OrderStatus;
-import com.truong.backend.entity.ReservationStatus;
+import com.truong.backend.entity.enums.OrderStatus;
+import com.truong.backend.entity.enums.ReservationStatus;
 
 import java.time.LocalDateTime;
 

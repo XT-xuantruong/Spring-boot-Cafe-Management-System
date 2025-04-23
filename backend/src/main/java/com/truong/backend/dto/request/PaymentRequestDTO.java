@@ -1,6 +1,6 @@
 package com.truong.backend.dto.request;
 
-import com.truong.backend.entity.PaymentMethod;
+import com.truong.backend.entity.enums.PaymentMethod;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 
